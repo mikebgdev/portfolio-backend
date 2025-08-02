@@ -1,0 +1,8 @@
+# Include all base requirements
+-r requirements.txt
+
+# Production WSGI server
+gunicorn==21.2.0
+
+# Production logging
+structlog==23.2.0
