@@ -75,28 +75,24 @@ jobs:
           bandit-report.json
           semgrep-report.json
 
-  docker-security:
+  dockerfile-security:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: |
-        docker build -t portfolio-backend-security:latest .
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+    - name: Run Dockerfile security scan
+      uses: hadolint/hadolint-action@v3.1.0
       with:
-        image-ref: 'portfolio-backend-security:latest'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+        dockerfile: Dockerfile
+        format: sarif
+        output-file: hadolint-results.sarif
 
-    - name: Upload Trivy scan results
+    - name: Upload Dockerfile scan results
       uses: github/codeql-action/upload-sarif@v2
       with:
-        sarif_file: 'trivy-results.sarif'
+        sarif_file: hadolint-results.sarif
 
   secrets-scan:
     runs-on: ubuntu-latest
