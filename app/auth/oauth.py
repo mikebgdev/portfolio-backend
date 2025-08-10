@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from google.auth.transport import requests
 from google.oauth2 import id_token
-import jwt
+from jose import jwt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from app.config import settings
@@ -60,7 +60,7 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired"
             )
-        except jwt.PyJWTError:
+        except jwt.JWTError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials"

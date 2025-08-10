@@ -4,10 +4,15 @@ from typing import List
 
 class Settings(BaseSettings):
     # Database Configuration
-    database_url: str
-    postgres_user: str = "portfolio_user"
-    postgres_password: str = "password"
+    postgres_host: str = "192.168.10.200"
+    postgres_port: int = 5432
+    postgres_user: str = "postgres"
+    postgres_password: str = "changeme"
     postgres_db: str = "portfolio_db"
+    
+    @property
+    def database_url(self) -> str:
+        return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     
     # Authentication
     secret_key: str
