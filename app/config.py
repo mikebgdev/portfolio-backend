@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     debug: bool = False
     cors_origins: List[str] = ["http://localhost:3000"]
     
+    # Multilingual Settings
+    supported_languages: dict = {
+        'en': 'English',
+        'es': 'Español'
+    }
+    default_language: str = 'en'
+    
     class Config:
         env_file = ".env"
 

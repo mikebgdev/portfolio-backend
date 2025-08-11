@@ -31,12 +31,12 @@ class AboutService:
 
 
 class SkillService:
-    def get_skills(self, db: Session, skill_type: Optional[str] = None) -> List[Skill]:
-        """Get all skills, optionally filtered by type."""
+    def get_skills(self, db: Session, skill_category: Optional[str] = None) -> List[Skill]:
+        """Get all skills, optionally filtered by category."""
         query = db.query(Skill)
-        if skill_type:
-            query = query.filter(Skill.type == skill_type)
-        return query.order_by(Skill.level.desc(), Skill.name).all()
+        if skill_category:
+            query = query.filter(Skill.category == skill_category)
+        return query.order_by(Skill.display_order, Skill.name).all()
 
     def get_skill_by_id(self, db: Session, skill_id: int) -> Optional[Skill]:
         """Get skill by ID."""
@@ -80,8 +80,8 @@ class SkillService:
 
 class ProjectService:
     def get_projects(self, db: Session) -> List[Project]:
-        """Get all projects ordered by creation date."""
-        return db.query(Project).order_by(Project.created_at.desc()).all()
+        """Get all projects ordered by display order and creation date."""
+        return db.query(Project).order_by(Project.display_order, Project.created_at.desc()).all()
 
     def get_project_by_id(self, db: Session, project_id: int) -> Optional[Project]:
         """Get project by ID."""
@@ -125,8 +125,8 @@ class ProjectService:
 
 class ExperienceService:
     def get_experiences(self, db: Session) -> List[Experience]:
-        """Get all experiences ordered by start date (most recent first)."""
-        return db.query(Experience).order_by(Experience.start_date.desc()).all()
+        """Get all experiences ordered by display order and start date (most recent first)."""
+        return db.query(Experience).order_by(Experience.display_order, Experience.start_date.desc()).all()
 
     def get_experience_by_id(self, db: Session, experience_id: int) -> Optional[Experience]:
         """Get experience by ID."""
@@ -170,8 +170,8 @@ class ExperienceService:
 
 class EducationService:
     def get_education_records(self, db: Session) -> List[Education]:
-        """Get all education records ordered by start date (most recent first)."""
-        return db.query(Education).order_by(Education.start_date.desc()).all()
+        """Get all education records ordered by display order and start date (most recent first)."""
+        return db.query(Education).order_by(Education.display_order, Education.start_date.desc()).all()
 
     def get_education_by_id(self, db: Session, education_id: int) -> Optional[Education]:
         """Get education record by ID."""

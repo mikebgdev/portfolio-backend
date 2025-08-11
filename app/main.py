@@ -11,7 +11,7 @@ from app.utils.logging import RequestLoggingMiddleware, app_logger
 from app.utils.monitoring import health_checker, metrics_collector
 
 # Import routers
-from app.routers import auth, about, skills, projects, experience, education
+from app.routers import auth, about, skills, projects, experience, education  # , translations  # Disabled - using direct multilingual fields
 
 # Import admin panel
 from app.admin import create_admin, register_admin_views
@@ -49,6 +49,7 @@ app.include_router(skills.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(experience.router, prefix="/api/v1")
 app.include_router(education.router, prefix="/api/v1")
+# app.include_router(translations.router, prefix="/api/v1")  # Disabled - using direct multilingual fields
 
 @app.get("/")
 async def root():
