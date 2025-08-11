@@ -10,9 +10,6 @@ alembic==1.12.1
 # Authentication dependencies
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-google-auth==2.25.2
-google-auth-oauthlib==1.2.0
-google-auth-httplib2==0.2.0
 
 # Validation and serialization
 pydantic[email]==2.5.0
@@ -29,3 +26,7 @@ python-dotenv==1.0.0
 
 # Monitoring and logging
 psutil==5.9.6
+
+# Admin panel
+sqladmin==0.13.0
+itsdangerous==2.1.2

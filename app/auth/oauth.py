@@ -1,31 +1,22 @@
 from fastapi import HTTPException, status
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from jose import jwt
+from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from app.config import settings
 
 
 class AuthService:
-    def verify_google_token(self, token: str) -> Dict[str, Any]:
-        """Verify Google OAuth token and return user info."""
-        try:
-            idinfo = id_token.verify_oauth2_token(
-                token, requests.Request(), settings.google_client_id
-            )
-            
-            # Verify the token is for our application
-            if idinfo['aud'] != settings.google_client_id:
-                raise ValueError('Wrong audience')
-                
-            return idinfo
-            
-        except ValueError as e:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid Google token: {str(e)}"
-            )
+    def __init__(self):
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        """Verify a password against its hash."""
+        return self.pwd_context.verify(plain_password, hashed_password)
+
+    def get_password_hash(self, password: str) -> str:
+        """Generate password hash."""
+        return self.pwd_context.hash(password)
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
         """Create JWT access token."""

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.config import settings
@@ -11,6 +12,9 @@ from app.utils.monitoring import health_checker, metrics_collector
 
 # Import routers
 from app.routers import auth, about, skills, projects, experience, education
+
+# Import admin panel
+from app.admin import create_admin, register_admin_views
 
 app = FastAPI(
     title="Portfolio Backend API",
@@ -28,8 +32,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add session middleware for admin authentication
+app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
+
 # Add request logging middleware
 app.add_middleware(RequestLoggingMiddleware)
+
+# Create and mount admin panel
+admin = create_admin(app)
+register_admin_views(admin)
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
@@ -57,10 +68,14 @@ async def get_metrics():
 async def startup_event():
     """Application startup tasks."""
     app_logger.info("Portfolio Backend API starting up", extra={
-        "event": "application_startup",
+        "event": "application_startup", 
         "version": "1.0.0",
         "debug_mode": settings.debug
     })
+    
+    # Ensure admin user exists
+    from app.utils.admin_setup import create_default_admin
+    create_default_admin()
 
 @app.on_event("shutdown")
 async def shutdown_event():

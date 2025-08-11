@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+from app.auth.oauth import auth_service
 from typing import Optional
 
 
@@ -15,7 +16,26 @@ class UserService:
 
     def create_user(self, db: Session, user_data: UserCreate) -> User:
         """Create a new user."""
-        db_user = User(**user_data.model_dump())
+        user_dict = user_data.model_dump()
+        # Hash password if provided
+        if 'password' in user_dict:
+            user_dict['password_hash'] = auth_service.get_password_hash(user_dict.pop('password'))
+        
+        db_user = User(**user_dict)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+
+    def create_user_with_password(self, db: Session, email: str, name: str, password: str, role: str = "admin") -> User:
+        """Create user with password."""
+        db_user = User(
+            email=email,
+            name=name,
+            password_hash=auth_service.get_password_hash(password),
+            role=role,
+            is_active=True
+        )
         db.add(db_user)
         db.commit()
         db.refresh(db_user)

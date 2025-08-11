@@ -3,8 +3,9 @@ from typing import Optional
 from app.schemas.user import UserResponse
 
 
-class GoogleTokenRequest(BaseModel):
-    google_token: str
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 
 class TokenResponse(BaseModel):

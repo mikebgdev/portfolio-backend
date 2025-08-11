@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.deps.auth import get_db, get_current_user
-from app.schemas.auth import GoogleTokenRequest, TokenResponse
+from app.schemas.auth import LoginRequest, TokenResponse
 from app.schemas.user import UserResponse
 from app.auth.oauth import auth_service
 from app.services.user import user_service
@@ -11,35 +11,33 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login_with_google(
-    request: GoogleTokenRequest,
+async def login(
+    request: LoginRequest,
     db: Session = Depends(get_db)
 ):
-    """Login with Google OAuth token."""
-    # Verify Google token
-    try:
-        google_user_info = auth_service.verify_google_token(request.google_token)
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Token verification failed: {str(e)}"
-        )
-
-    email = google_user_info.get("email")
-    name = google_user_info.get("name", email)
-
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email not found in Google token"
-        )
-
-    # Get or create user
-    user = user_service.get_user_by_email(db, email)
+    """Login with username and password."""
+    # Find user by email/username
+    user = db.query(User).filter(User.email == request.username).first()
+    
     if not user:
-        user = user_service.create_user_from_oauth(db, email, name)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
+        )
+    
+    # Verify password
+    if not auth_service.verify_password(request.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
+        )
+    
+    # Check if user is active
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user"
+        )
 
     # Create access token
     access_token = auth_service.create_access_token(
