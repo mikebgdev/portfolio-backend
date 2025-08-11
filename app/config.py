@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
-    # Google OAuth
-    google_client_id: str
-    google_client_secret: str
+    # Google OAuth (optional for CI/testing)
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
     
     # Application Settings
     debug: bool = False
