@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     }
     default_language: str = 'en'
     
+    # Security Settings
+    max_upload_size: int = 10 * 1024 * 1024  # 10MB
+    rate_limit_per_minute: int = 100
+    enable_rate_limiting: bool = True
+    
     class Config:
         env_file = ".env"
 

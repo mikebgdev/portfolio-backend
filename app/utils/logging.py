@@ -90,6 +90,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Log request and response details."""
         start_time = time.time()
+        request.state.start_time = datetime.now()
         
         # Extract request details
         request_data = {
@@ -100,6 +101,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             "headers": dict(request.headers),
             "client_ip": request.client.host if request.client else None,
             "user_agent": request.headers.get("user-agent"),
+            "timestamp": request.state.start_time.isoformat()
         }
         
         # Log request

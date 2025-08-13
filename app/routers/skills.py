@@ -45,12 +45,8 @@ async def get_skill(
     if lang not in settings.supported_languages:
         lang = settings.default_language
         
+    # Service will raise ContentNotFoundError if skill doesn't exist
     skill = skill_service.get_skill_by_id(db, skill_id)
-    if not skill:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Skill not found"
-        )
     
     response = SkillResponse.model_validate(skill)
     response.language = lang  # Set requested language for computed properties

@@ -1,6 +1,7 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, validator, Field
 from typing import Optional, List
 from datetime import datetime
+import re
 
 
 # Note: Translation schemas removed as we now use direct multilingual fields (_en, _es)
@@ -8,20 +9,51 @@ from datetime import datetime
 
 # About Schemas
 class AboutBase(BaseModel):
-    name: str
-    last_name: str
-    birth_month: Optional[int] = None
-    birth_year: Optional[int] = None
-    email: str
-    location: str
-    photo_url: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=100, description="First name")
+    last_name: str = Field(..., min_length=1, max_length=100, description="Last name")
+    birth_month: Optional[int] = Field(None, ge=1, le=12, description="Birth month (1-12)")
+    birth_year: Optional[int] = Field(None, ge=1900, le=2100, description="Birth year")
+    email: str = Field(..., description="Email address")
+    location: str = Field(..., min_length=1, max_length=200, description="Location")
+    photo_url: Optional[str] = Field(None, description="Photo URL")
     # Multilingual fields - English required, Spanish optional
-    bio_en: str
-    bio_es: Optional[str] = None
-    extra_content_en: Optional[str] = None
-    extra_content_es: Optional[str] = None
-    nationality_en: str
-    nationality_es: Optional[str] = None
+    bio_en: str = Field(..., min_length=10, max_length=5000, description="Biography in English")
+    bio_es: Optional[str] = Field(None, max_length=5000, description="Biography in Spanish")
+    extra_content_en: Optional[str] = Field(None, max_length=2000, description="Extra content in English")
+    extra_content_es: Optional[str] = Field(None, max_length=2000, description="Extra content in Spanish")
+    nationality_en: str = Field(..., min_length=1, max_length=100, description="Nationality in English")
+    nationality_es: Optional[str] = Field(None, max_length=100, description="Nationality in Spanish")
+
+    @validator('email')
+    def validate_email(cls, v):
+        email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        if not email_pattern.match(v):
+            raise ValueError('Invalid email format')
+        return v.lower()
+
+    @validator('photo_url')
+    def validate_photo_url(cls, v):
+        if v and not v.startswith(('http://', 'https://')):
+            raise ValueError('Photo URL must start with http:// or https://')
+        return v
+
+    @validator('name', 'last_name', 'location', 'nationality_en', 'nationality_es')
+    def validate_text_fields(cls, v):
+        if v and not v.strip():
+            raise ValueError('Field cannot be empty or only whitespace')
+        return v.strip() if v else v
+
+    @validator('bio_en', 'bio_es', 'extra_content_en', 'extra_content_es')
+    def validate_content_fields(cls, v):
+        if v:
+            # Remove excessive whitespace
+            v = re.sub(r'\s+', ' ', v.strip())
+            # Check for suspicious content
+            suspicious_patterns = ['<script', 'javascript:', 'onclick=', 'onerror=']
+            for pattern in suspicious_patterns:
+                if pattern.lower() in v.lower():
+                    raise ValueError(f'Content contains potentially unsafe elements: {pattern}')
+        return v
 
 
 class AboutCreate(AboutBase):
@@ -100,6 +132,8 @@ class SkillUpdate(BaseModel):
 class SkillResponse(SkillBase):
     id: int
     created_at: datetime
+    language: Optional[str] = 'en'
+    available_languages: List[str] = ['en', 'es']
 
     class Config:
         from_attributes = True
@@ -108,17 +142,57 @@ class SkillResponse(SkillBase):
 # Project Schemas
 class ProjectBase(BaseModel):
     # Multilingual fields
-    title_en: str
-    title_es: Optional[str] = None
-    description_en: str
-    description_es: Optional[str] = None
+    title_en: str = Field(..., min_length=1, max_length=200, description="Project title in English")
+    title_es: Optional[str] = Field(None, max_length=200, description="Project title in Spanish")
+    description_en: str = Field(..., min_length=10, max_length=2000, description="Project description in English")
+    description_es: Optional[str] = Field(None, max_length=2000, description="Project description in Spanish")
     # Non-translatable fields
-    image_url: Optional[str] = None
-    technologies: str
-    source_url: Optional[str] = None
-    demo_url: Optional[str] = None
-    display_order: Optional[int] = 0
-    activa: Optional[bool] = True
+    image_url: Optional[str] = Field(None, description="Project image URL")
+    technologies: str = Field(..., min_length=1, max_length=500, description="Technologies used (comma-separated)")
+    source_url: Optional[str] = Field(None, description="Source code URL")
+    demo_url: Optional[str] = Field(None, description="Live demo URL")
+    display_order: Optional[int] = Field(0, ge=0, le=1000, description="Display order")
+    activa: Optional[bool] = Field(True, description="Whether project is active")
+
+    @validator('image_url', 'source_url', 'demo_url')
+    def validate_urls(cls, v):
+        if v and not v.startswith(('http://', 'https://')):
+            raise ValueError('URL must start with http:// or https://')
+        return v
+
+    @validator('technologies')
+    def validate_technologies(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Technologies cannot be empty')
+        # Clean up technologies list
+        techs = [tech.strip() for tech in v.split(',') if tech.strip()]
+        if not techs:
+            raise ValueError('At least one technology must be specified')
+        return ', '.join(techs)
+
+    @validator('title_en', 'title_es')
+    def validate_titles(cls, v):
+        if v:
+            v = v.strip()
+            if not v:
+                raise ValueError('Title cannot be empty or only whitespace')
+            # Check for suspicious content
+            suspicious_patterns = ['<', '>', 'script', 'javascript:']
+            for pattern in suspicious_patterns:
+                if pattern.lower() in v.lower():
+                    raise ValueError(f'Title contains invalid characters: {pattern}')
+        return v
+
+    @validator('description_en', 'description_es')
+    def validate_descriptions(cls, v):
+        if v:
+            v = re.sub(r'\s+', ' ', v.strip())
+            # Check for suspicious content
+            suspicious_patterns = ['<script', 'javascript:', 'onclick=', 'onerror=']
+            for pattern in suspicious_patterns:
+                if pattern.lower() in v.lower():
+                    raise ValueError(f'Description contains potentially unsafe elements: {pattern}')
+        return v
 
 
 class ProjectCreate(ProjectBase):

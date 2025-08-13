@@ -1,11 +1,16 @@
 from sqlalchemy.orm import Session
-from app.models.content import About, Skill, Project, Experience, Education
+from sqlalchemy.exc import SQLAlchemyError
+from app.models.content import About, Skill, Project, Experience, Education, Contact
 from app.schemas.content import (
     AboutUpdate, SkillCreate, SkillUpdate, ProjectCreate, ProjectUpdate,
-    ExperienceCreate, ExperienceUpdate, EducationCreate, EducationUpdate
+    ExperienceCreate, ExperienceUpdate, EducationCreate, EducationUpdate,
+    ContactCreate, ContactUpdate
 )
+from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
 from typing import List, Optional
-from fastapi import HTTPException, status
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AboutService:
@@ -15,19 +20,24 @@ class AboutService:
 
     def update_about(self, db: Session, about_data: AboutUpdate) -> About:
         """Update about section content."""
-        about = self.get_about(db)
-        if not about:
-            # Create new about record if none exists
-            about = About()
-            db.add(about)
+        try:
+            about = self.get_about(db)
+            if not about:
+                # Create new about record if none exists
+                about = About()
+                db.add(about)
 
-        update_data = about_data.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(about, field, value)
+            update_data = about_data.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(about, field, value)
 
-        db.commit()
-        db.refresh(about)
-        return about
+            db.commit()
+            db.refresh(about)
+            return about
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Database error updating about content: {str(e)}")
+            raise DatabaseError("update_about", str(e))
 
 
 class SkillService:
@@ -38,17 +48,29 @@ class SkillService:
             query = query.filter(Skill.category == skill_category)
         return query.order_by(Skill.display_order, Skill.name).all()
 
-    def get_skill_by_id(self, db: Session, skill_id: int) -> Optional[Skill]:
+    def get_skill_by_id(self, db: Session, skill_id: int) -> Skill:
         """Get skill by ID."""
-        return db.query(Skill).filter(Skill.id == skill_id).first()
+        skill = db.query(Skill).filter(Skill.id == skill_id).first()
+        if not skill:
+            raise ContentNotFoundError("skill", skill_id)
+        return skill
 
     def create_skill(self, db: Session, skill_data: SkillCreate) -> Skill:
         """Create a new skill."""
-        skill = Skill(**skill_data.model_dump())
-        db.add(skill)
-        db.commit()
-        db.refresh(skill)
-        return skill
+        try:
+            # Validate skill data
+            if not skill_data.name or len(skill_data.name.strip()) == 0:
+                raise ValidationError("name", skill_data.name, "Skill name cannot be empty")
+            
+            skill = Skill(**skill_data.model_dump())
+            db.add(skill)
+            db.commit()
+            db.refresh(skill)
+            return skill
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Database error creating skill: {str(e)}")
+            raise DatabaseError("create_skill", str(e))
 
     def update_skill(self, db: Session, skill_id: int, skill_data: SkillUpdate) -> Skill:
         """Update existing skill."""
@@ -213,9 +235,33 @@ class EducationService:
         return True
 
 
+class ContactService:
+    def get_contact(self, db: Session) -> Optional[Contact]:
+        """Get contact section content."""
+        return db.query(Contact).first()
+
+    def update_contact(self, db: Session, contact_data: ContactUpdate) -> Contact:
+        """Update contact section content."""
+        contact = self.get_contact(db)
+        if not contact:
+            # Create new contact record if none exists
+            contact_dict = contact_data.model_dump(exclude_unset=True)
+            contact = Contact(**contact_dict)
+            db.add(contact)
+        else:
+            update_data = contact_data.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(contact, field, value)
+
+        db.commit()
+        db.refresh(contact)
+        return contact
+
+
 # Global service instances
 about_service = AboutService()
 skill_service = SkillService()
 project_service = ProjectService()
 experience_service = ExperienceService()
 education_service = EducationService()
+contact_service = ContactService()
