@@ -30,3 +30,7 @@ psutil==5.9.6
 # Admin panel
 sqladmin==0.13.0
 itsdangerous==2.1.2
+
+# Caching and Performance
+redis==4.6.0
+slowapi==0.1.9

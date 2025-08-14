@@ -28,8 +28,25 @@ from app.middleware.security import (
     RequestSizeMiddleware
 )
 
+# Import monitoring middleware
+from app.middleware.monitoring import (
+    MetricsMiddleware,
+    DatabaseMetricsMiddleware,
+    system_metrics_collector
+)
+
+# Import performance middleware
+from app.middleware.performance import (
+    CacheMiddleware,
+    CompressionMiddleware,
+    PerformanceMonitoringMiddleware
+)
+
+# Import cache utilities
+from app.utils.cache import cache_manager, warm_cache
+
 # Import routers
-from app.routers import auth, about, skills, projects, experience, education, contact
+from app.routers import auth, about, skills, projects, experience, education, contact, monitoring
 
 # Import admin panel
 from app.admin import create_admin, register_admin_views
@@ -55,9 +72,20 @@ app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 
 # Add security middleware (order matters - add these first)
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RateLimitingMiddleware, requests_per_minute=100)  # Configurable rate limit
+app.add_middleware(RateLimitingMiddleware, requests_per_minute=settings.rate_limit_per_minute)
 app.add_middleware(InputSanitizationMiddleware)
 app.add_middleware(RequestSizeMiddleware, max_size=settings.max_upload_size)
+
+# Add performance middleware
+if settings.enable_compression:
+    app.add_middleware(CompressionMiddleware, minimum_size=1000)
+if settings.enable_http_cache:
+    app.add_middleware(CacheMiddleware, default_ttl=settings.cache_ttl_content)
+app.add_middleware(PerformanceMonitoringMiddleware, slow_request_threshold=1.0)
+
+# Add monitoring middleware
+app.add_middleware(MetricsMiddleware)
+app.add_middleware(DatabaseMetricsMiddleware)
 
 # Add request logging middleware
 app.add_middleware(RequestLoggingMiddleware)
@@ -80,6 +108,7 @@ app.include_router(projects.router, prefix="/api/v1")
 app.include_router(experience.router, prefix="/api/v1")
 app.include_router(education.router, prefix="/api/v1")
 app.include_router(contact.router, prefix="/api/v1")
+app.include_router(monitoring.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
@@ -107,6 +136,18 @@ async def startup_event():
     # Ensure admin user exists
     from app.utils.admin_setup import create_default_admin
     create_default_admin()
+    
+    # Initialize cache connection
+    await cache_manager.connect(settings.redis_url)
+    app_logger.info("Cache system initialized")
+    
+    # Start system metrics collection
+    await system_metrics_collector.start_collection()
+    app_logger.info("System metrics collection started")
+    
+    # Warm up cache with frequently accessed data
+    await warm_cache()
+    app_logger.info("Cache warmed up")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -114,3 +155,7 @@ async def shutdown_event():
     app_logger.info("Portfolio Backend API shutting down", extra={
         "event": "application_shutdown"
     })
+    
+    # Stop system metrics collection
+    await system_metrics_collector.stop_collection()
+    app_logger.info("System metrics collection stopped")
