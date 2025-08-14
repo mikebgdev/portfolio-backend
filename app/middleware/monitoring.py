@@ -1,6 +1,7 @@
 """
 Monitoring middleware for automated metrics collection.
 """
+import asyncio
 import time
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware

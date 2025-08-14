@@ -34,3 +34,6 @@ itsdangerous==2.1.2
 # Caching and Performance
 redis==4.6.0
 slowapi==0.1.9
+
+# Development and Code Quality
+flake8==7.3.0
