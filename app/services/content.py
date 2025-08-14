@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.content import About, Skill, Project, Experience, Education, Contact
@@ -7,6 +8,7 @@ from app.schemas.content import (
     ContactCreate, ContactUpdate
 )
 from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
+from app.utils.cache import cached, ContentCache
 from typing import List, Optional
 import logging
 
@@ -41,9 +43,10 @@ class AboutService:
 
 
 class SkillService:
+    @cached(ttl=600, key_prefix="skills")  # Cache for 10 minutes
     def get_skills(self, db: Session, skill_category: Optional[str] = None) -> List[Skill]:
         """Get all skills, optionally filtered by category."""
-        query = db.query(Skill)
+        query = db.query(Skill).filter(Skill.activa == True)  # Only active skills
         if skill_category:
             query = query.filter(Skill.category == skill_category)
         return query.order_by(Skill.display_order, Skill.name).all()
@@ -72,14 +75,9 @@ class SkillService:
             logger.error(f"Database error creating skill: {str(e)}")
             raise DatabaseError("create_skill", str(e))
 
-    def update_skill(self, db: Session, skill_id: int, skill_data: SkillUpdate) -> Skill:
+    async def update_skill(self, db: Session, skill_id: int, skill_data: SkillUpdate) -> Skill:
         """Update existing skill."""
         skill = self.get_skill_by_id(db, skill_id)
-        if not skill:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Skill not found"
-            )
 
         update_data = skill_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
@@ -87,6 +85,10 @@ class SkillService:
 
         db.commit()
         db.refresh(skill)
+        
+        # Invalidate skill cache
+        await ContentCache.invalidate_content_cache("skills", skill_id)
+        
         return skill
 
     def delete_skill(self, db: Session, skill_id: int) -> bool:

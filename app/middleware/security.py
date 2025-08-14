@@ -27,18 +27,24 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         
         # More lenient headers for admin and docs
-        if path.startswith(('/admin', '/docs', '/redoc')):
+        if path.startswith(('/admin', '/docs', '/redoc', '/openapi.json')):
             response.headers["X-Frame-Options"] = "SAMEORIGIN"  # Allow iframe for admin
-            # More permissive CSP for admin panel
-            csp_directives = [
-                "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",  # Admin needs eval
-                "style-src 'self' 'unsafe-inline'",
-                "img-src 'self' data: https: blob:",  # Admin might use blob URLs
-                "font-src 'self' data:",
-                "connect-src 'self'",
-                "frame-ancestors 'self'"
-            ]
+            # Very permissive CSP for API docs (FastAPI needs external CDNs)
+            if path.startswith('/docs') or path.startswith('/redoc'):
+                # Disable CSP for docs - FastAPI docs need external resources
+                response.headers["Content-Security-Policy"] = ""
+            else:
+                # Less restrictive CSP for admin
+                csp_directives = [
+                    "default-src 'self'",
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com",
+                    "img-src 'self' data: https: blob:",
+                    "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
+                    "connect-src 'self'",
+                    "frame-ancestors 'self'"
+                ]
+                response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
         else:
             response.headers["X-Frame-Options"] = "DENY"
             response.headers["X-XSS-Protection"] = "1; mode=block"
@@ -58,7 +64,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if not settings.debug:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         
-        response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+        # Set CSP only if not already set above
+        if "Content-Security-Policy" not in response.headers:
+            response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
         
         return response
 
@@ -183,7 +191,8 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         '/docs',
         '/redoc',
         '/openapi.json',
-        '/static'
+        '/static',
+        '/_starlette'  # Starlette internal routes
     ]
     
     def __init__(self, app: ASGIApp):
