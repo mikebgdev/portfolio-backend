@@ -20,6 +20,11 @@ def safe_drop_column(table_name, column_name):
     """Safely drop a column only if it exists."""
     conn = op.get_bind()
     inspector = sa.inspect(conn)
+    
+    # Check if table exists first
+    if table_name not in inspector.get_table_names():
+        return
+        
     columns = [col['name'] for col in inspector.get_columns(table_name)]
     if column_name in columns:
         op.drop_column(table_name, column_name)
@@ -28,6 +33,11 @@ def safe_add_column(table_name, column_name, column_def):
     """Safely add a column only if it doesn't exist."""
     conn = op.get_bind()
     inspector = sa.inspect(conn)
+    
+    # Check if table exists first
+    if table_name not in inspector.get_table_names():
+        return
+        
     columns = [col['name'] for col in inspector.get_columns(table_name)]
     if column_name not in columns:
         op.add_column(table_name, column_def)
