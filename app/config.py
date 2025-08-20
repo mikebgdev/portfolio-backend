@@ -14,10 +14,8 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     
-    # Authentication
+    # Authentication (only for SQLAdmin)
     secret_key: str
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
     
     # Google OAuth (optional for CI/testing)
     google_client_id: Optional[str] = None

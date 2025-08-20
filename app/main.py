@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 from app.config import settings
-from app.deps.auth import get_db
 
 # Import exception handlers
 from app.exceptions import (
@@ -46,7 +45,7 @@ from app.middleware.performance import (
 from app.utils.cache import cache_manager, warm_cache
 
 # Import routers
-from app.routers import auth, about, skills, projects, experience, education, contact, site_config, monitoring
+from app.routers import about, skills, projects, experience, education, contact, site_config, monitoring
 
 # Import admin panel
 from app.admin import create_admin, register_admin_views
@@ -87,8 +86,10 @@ app.add_middleware(PerformanceMonitoringMiddleware, slow_request_threshold=1.0)
 app.add_middleware(MetricsMiddleware)
 app.add_middleware(DatabaseMetricsMiddleware)
 
+
 # Add request logging middleware
 app.add_middleware(RequestLoggingMiddleware)
+
 
 # Register exception handlers
 app.add_exception_handler(PortfolioBaseException, portfolio_exception_handler)
@@ -100,8 +101,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 admin = create_admin(app)
 register_admin_views(admin)
 
-# Include routers
-app.include_router(auth.router, prefix="/api/v1")
+# Include routers (public API - no authentication needed)
 app.include_router(site_config.router, prefix="/api/v1")
 app.include_router(about.router, prefix="/api/v1")
 app.include_router(skills.router, prefix="/api/v1")
@@ -111,11 +111,20 @@ app.include_router(education.router, prefix="/api/v1")
 app.include_router(contact.router, prefix="/api/v1")
 app.include_router(monitoring.router, prefix="/api/v1")
 
-# Include admin routers (no prefix to work alongside SQLAdmin)
+# Admin redirect route
+from starlette.responses import RedirectResponse
+from starlette.requests import Request
 
 @app.get("/")
 async def root():
     return {"message": "Portfolio Backend API", "version": "1.0.0"}
+
+@app.get("/admin")
+async def admin_auth_check(request: Request):
+    """Redirect to admin login if not authenticated, otherwise to admin panel."""
+    if not request.session.get("authenticated"):
+        return RedirectResponse(url="/admin/login", status_code=302)
+    return RedirectResponse(url="/admin/", status_code=302)
 
 @app.get("/health")
 async def health_check():

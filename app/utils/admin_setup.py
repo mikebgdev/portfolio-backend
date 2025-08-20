@@ -3,8 +3,8 @@ Admin user setup utilities.
 """
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.services.user import user_service
 from app.database import SessionLocal
+from app.auth.oauth import AuthService
 import os
 import getpass
 
@@ -12,6 +12,7 @@ import getpass
 def create_default_admin():
     """Create default admin user if none exists."""
     db = SessionLocal()
+    auth_service = AuthService()
     try:
         # Check if any admin user exists
         admin_count = db.query(User).filter(User.role == "admin").count()
@@ -20,13 +21,18 @@ def create_default_admin():
             print("No admin user found. Creating default admin user...")
             
             # Create default admin
-            default_admin = user_service.create_user_with_password(
-                db=db,
+            hashed_password = auth_service.hash_password("admin123")
+            default_admin = User(
                 email="admin@portfolio.com",
-                name="Portfolio Admin", 
-                password="admin123",
-                role="admin"
+                name="Portfolio Admin",
+                password_hash=hashed_password,
+                role="admin",
+                is_active=True
             )
+            db.add(default_admin)
+            db.commit()
+            db.refresh(default_admin)
+            
             print(f"✅ Default admin user created: {default_admin.email}")
             print("⚠️  Default password: admin123")
             print("🔐 IMPORTANT: Please change the password after first login!")
@@ -75,13 +81,18 @@ def setup_admin_interactive():
                     print("❌ Password must be at least 6 characters long")
             
             # Create admin user
-            admin = user_service.create_user_with_password(
-                db=db,
+            auth_service = AuthService()
+            hashed_password = auth_service.hash_password(password)
+            admin = User(
                 email=email,
                 name=name,
-                password=password,
-                role="admin"
+                password_hash=hashed_password,
+                role="admin",
+                is_active=True
             )
+            db.add(admin)
+            db.commit()
+            db.refresh(admin)
             
             print(f"\n✅ Admin user created successfully!")
             print(f"📧 Email: {admin.email}")
