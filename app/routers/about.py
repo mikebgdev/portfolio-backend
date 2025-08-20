@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional
-from app.deps.auth import get_db, get_current_admin_user
-from app.schemas.content import AboutResponse, AboutUpdate
-from app.services.content import about_service
-from app.models.user import User
+from app.deps.auth import get_db
+from app.schemas.about import AboutResponse
+from app.services.about import about_service
 from app.config import settings
 
 router = APIRouter(prefix="/about", tags=["about"])
-
 
 @router.get("/", response_model=AboutResponse)
 async def get_about(
@@ -34,13 +32,3 @@ async def get_about(
     
     return response
 
-
-@router.put("/", response_model=AboutResponse)
-async def update_about(
-    about_data: AboutUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Update about section content (admin only)."""
-    updated_about = about_service.update_about(db, about_data)
-    return AboutResponse.model_validate(updated_about)

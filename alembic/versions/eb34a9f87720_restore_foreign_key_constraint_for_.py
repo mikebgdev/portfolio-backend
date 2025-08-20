@@ -1,8 +1,8 @@
-"""fix_nationality_defaults
+"""restore_foreign_key_constraint_for_skills
 
-Revision ID: d384c71f3ccd
-Revises: 427200ffd139
-Create Date: 2025-08-11 15:01:38.329466
+Revision ID: eb34a9f87720
+Revises: 9752015bd799
+Create Date: 2025-08-19 00:19:09.179651
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd384c71f3ccd'
-down_revision = 'a5c1e7c7d003'
+revision = 'eb34a9f87720'
+down_revision = '764c51636101'
 branch_labels = None
 depends_on = None
 

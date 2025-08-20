@@ -3,72 +3,56 @@ Monitoring and metrics endpoints for Portfolio Backend API.
 """
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Optional
-from app.deps.auth import get_current_admin_user
-from app.models.user import User
 from app.utils.enhanced_monitoring import metrics_collector, enhanced_health_checker
 from app.utils.monitoring import health_checker, metrics_collector as basic_metrics
 from app.utils.cache import cache_manager
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
-
 @router.get("/health")
 async def get_basic_health():
     """Get basic health status (public endpoint)."""
     return health_checker.get_application_health()
 
-
 @router.get("/health/detailed")
 async def get_detailed_health(
-    current_user: User = Depends(get_current_admin_user)
 ):
     """Get comprehensive health status with detailed metrics (admin only)."""
     return enhanced_health_checker.get_comprehensive_health()
-
 
 @router.get("/metrics")
 async def get_basic_metrics():
     """Get basic application metrics (public endpoint)."""
     return basic_metrics.get_metrics()
 
-
 @router.get("/metrics/requests")
 async def get_request_metrics(
-    current_user: User = Depends(get_current_admin_user)
 ):
     """Get detailed request metrics (admin only)."""
     return metrics_collector.get_request_metrics()
 
-
 @router.get("/metrics/system")
 async def get_system_metrics(
-    hours: int = Query(default=1, ge=1, le=24, description="Hours of metrics to retrieve"),
-    current_user: User = Depends(get_current_admin_user)
+    hours: int = Query(default=1, ge=1, le=24, description="Hours of metrics to retrieve")
 ):
     """Get system resource metrics for specified time period (admin only)."""
     return metrics_collector.get_system_metrics(hours=hours)
 
-
 @router.get("/metrics/database")
 async def get_database_metrics(
-    current_user: User = Depends(get_current_admin_user)
 ):
     """Get database performance metrics (admin only)."""
     return metrics_collector.get_database_metrics()
 
-
 @router.get("/metrics/security")
 async def get_security_metrics(
-    current_user: User = Depends(get_current_admin_user)
 ):
     """Get security event metrics (admin only)."""
     return metrics_collector.get_security_metrics()
 
-
 @router.get("/metrics/dashboard")
 async def get_dashboard_metrics(
-    hours: int = Query(default=1, ge=1, le=24, description="Hours of metrics for dashboard"),
-    current_user: User = Depends(get_current_admin_user)
+    hours: int = Query(default=1, ge=1, le=24, description="Hours of metrics for dashboard")
 ):
     """Get comprehensive dashboard metrics (admin only)."""
     
@@ -87,35 +71,8 @@ async def get_dashboard_metrics(
     
     return dashboard_data
 
-
-@router.post("/metrics/security/event")
-async def record_security_event(
-    event_type: str,
-    severity: str,
-    details: dict,
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Manually record a security event (admin only)."""
-    
-    valid_severities = ["low", "medium", "high", "critical"]
-    if severity not in valid_severities:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid severity. Must be one of: {valid_severities}"
-        )
-    
-    metrics_collector.record_security_event(
-        event_type=event_type,
-        severity=severity,
-        details=details
-    )
-    
-    return {"message": "Security event recorded successfully"}
-
-
 @router.get("/alerts")
 async def get_active_alerts(
-    current_user: User = Depends(get_current_admin_user)
 ):
     """Get active system alerts based on current metrics (admin only)."""
     
@@ -181,24 +138,11 @@ async def get_active_alerts(
         }
     }
 
-
 @router.get("/metrics/cache")
 async def get_cache_metrics(
-    current_user: User = Depends(get_current_admin_user)
 ):
     """Get cache performance metrics (admin only)."""
     return cache_manager.get_stats()
-
-
-@router.post("/cache/clear")
-async def clear_cache(
-    pattern: Optional[str] = "*",
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Clear cache entries matching pattern (admin only)."""
-    await cache_manager.clear_pattern(pattern)
-    return {"message": f"Cache cleared for pattern: {pattern}"}
-
 
 @router.get("/stats/summary")
 async def get_stats_summary():

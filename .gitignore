@@ -154,3 +154,15 @@ logs/
 
 # Docker volumes
 postgres_data/
+
+# Admin debug files
+debug_*.py
+setup_admin.py
+server.log
+
+# Cache directories
+.cache/
+
+# Temporary development files
+*.tmp
+*.temp

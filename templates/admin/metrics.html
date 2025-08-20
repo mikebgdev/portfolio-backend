@@ -1,0 +1,343 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-xl">
+  <!-- Page header -->
+  <div class="page-header d-print-none">
+    <div class="container-xl">
+      <div class="row g-2 align-items-center">
+        <div class="col">
+          <div class="page-pretitle">Panel de Administración</div>
+          <h2 class="page-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <line x1="4" y1="19" x2="20" y2="19"/>
+              <polyline points="4,15 8,9 12,11 16,6 20,10"/>
+            </svg>
+            Métricas y Análisis
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page body -->
+  <div class="page-body">
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-title">Error al cargar métricas</h4>
+      <div class="text-muted">{{ error }}</div>
+    </div>
+    {% else %}
+    
+    <!-- Overview Cards -->
+    {% if dashboard.overview %}
+    <div class="row row-deck row-cards mb-3">
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Estado del Sistema</div>
+              <div class="ms-auto lh-1">
+                {% if dashboard.overview.health.status == "healthy" %}
+                  <div class="badge bg-green"></div>
+                {% else %}
+                  <div class="badge bg-red"></div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="h1 mb-3">
+              {% if dashboard.overview.health.status == "healthy" %}
+                <span class="text-green">Saludable</span>
+              {% else %}
+                <span class="text-red">{{ dashboard.overview.health.status|title }}</span>
+              {% endif %}
+            </div>
+            <div class="d-flex mb-2">
+              <div>Uptime: {{ "%.1f"|format(dashboard.overview.health.uptime_seconds / 3600) }}h</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Solicitudes Totales</div>
+              <div class="ms-auto lh-1">
+                <div class="dropdown">
+                  <a class="dropdown-toggle text-muted" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Últimas 24h</a>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline">
+              <div class="h1 mb-0 me-2">{{ dashboard.requests.total_requests|default(0) }}</div>
+              {% if dashboard.requests.error_rate|default(0) > 5 %}
+                <div class="me-auto">
+                  <span class="text-red d-inline-flex align-items-center lh-1">
+                    {{ "%.1f"|format(dashboard.requests.error_rate) }}% errores
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="22,7 13.5,15.5 8.5,10.5 2,17"/><polyline points="16,7 22,7 22,13"/></svg>
+                  </span>
+                </div>
+              {% else %}
+                <div class="me-auto">
+                  <span class="text-green d-inline-flex align-items-center lh-1">
+                    {{ "%.1f"|format(dashboard.requests.error_rate|default(0)) }}% errores
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="2,17 8.5,10.5 13.5,15.5 22,7"/><polyline points="8,7 22,7 22,13"/></svg>
+                  </span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Cache Hit Rate</div>
+            </div>
+            <div class="d-flex align-items-baseline">
+              <div class="h1 mb-3 me-2">{{ "%.1f"|format(cache.hit_rate_percent|default(0)) }}%</div>
+              <div class="me-auto">
+                <span class="{% if cache.hit_rate_percent|default(0) > 80 %}text-green{% elif cache.hit_rate_percent|default(0) > 60 %}text-yellow{% else %}text-red{% endif %} d-inline-flex align-items-center lh-1">
+                  {{ cache.total_hits|default(0) }}/{{ cache.total_requests|default(0) }}
+                </span>
+              </div>
+            </div>
+            <div class="progress progress-sm">
+              <div class="progress-bar bg-primary" style="width: {{ cache.hit_rate_percent|default(0) }}%" role="progressbar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Alertas Activas</div>
+              <div class="ms-auto lh-1">
+                {% if alerts.total_alerts|default(0) > 0 %}
+                  <div class="badge bg-red">{{ alerts.total_alerts }}</div>
+                {% else %}
+                  <div class="badge bg-green">0</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="h1 mb-3">{{ alerts.total_alerts|default(0) }}</div>
+            {% if alerts.severity_counts %}
+            <div class="d-flex mb-2">
+              <div>Críticas: <span class="text-red">{{ alerts.severity_counts.critical|default(0) }}</span></div>
+              <div class="ms-auto">Advertencias: <span class="text-yellow">{{ alerts.severity_counts.warning|default(0) }}</span></div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Alerts Section -->
+    {% if alerts.alerts and alerts.alerts|length > 0 %}
+    <div class="row row-cards mb-3">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Alertas Activas</h3>
+          </div>
+          <div class="card-body">
+            {% for alert in alerts.alerts %}
+            <div class="alert alert-{% if alert.severity == 'critical' %}danger{% elif alert.severity == 'warning' %}warning{% else %}info{% endif %}" role="alert">
+              <div class="d-flex">
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <circle cx="12" cy="12" r="9"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="alert-title">{{ alert.component|title }} - {{ alert.severity|title }}</h4>
+                  <div class="text-muted">{{ alert.message }}</div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Detailed Metrics -->
+    <div class="row row-cards mb-3">
+      <!-- Request Metrics -->
+      {% if dashboard.requests %}
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Métricas de Solicitudes</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="table card-table table-vcenter">
+              <thead>
+                <tr>
+                  <th>Endpoint</th>
+                  <th>Solicitudes</th>
+                  <th>Promedio (ms)</th>
+                  <th>Tasa de Éxito</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for endpoint, stats in dashboard.requests.endpoints.items() %}
+                <tr>
+                  <td class="text-muted">{{ endpoint }}</td>
+                  <td>{{ stats.requests }}</td>
+                  <td>{{ stats.avg_response_time_ms }}</td>
+                  <td>
+                    {% if stats.success_rate >= 95 %}
+                      <span class="text-green">{{ "%.1f"|format(stats.success_rate) }}%</span>
+                    {% elif stats.success_rate >= 90 %}
+                      <span class="text-yellow">{{ "%.1f"|format(stats.success_rate) }}%</span>
+                    {% else %}
+                      <span class="text-red">{{ "%.1f"|format(stats.success_rate) }}%</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- System Metrics -->
+      {% if dashboard.system %}
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Métricas del Sistema</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-6">
+                <div class="mb-3">
+                  <div class="text-muted">CPU</div>
+                  <div class="progress progress-sm">
+                    <div class="progress-bar bg-primary" style="width: {{ dashboard.system.averages.cpu_percent|default(0) }}%"></div>
+                  </div>
+                  <div class="text-muted small">{{ "%.1f"|format(dashboard.system.averages.cpu_percent|default(0)) }}%</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="mb-3">
+                  <div class="text-muted">Memoria</div>
+                  <div class="progress progress-sm">
+                    <div class="progress-bar bg-primary" style="width: {{ dashboard.system.averages.memory_percent|default(0) }}%"></div>
+                  </div>
+                  <div class="text-muted small">{{ "%.1f"|format(dashboard.system.averages.memory_percent|default(0)) }}%</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="mb-3">
+                  <div class="text-muted">Disco</div>
+                  <div class="progress progress-sm">
+                    <div class="progress-bar bg-primary" style="width: {{ dashboard.system.averages.disk_percent|default(0) }}%"></div>
+                  </div>
+                  <div class="text-muted small">{{ "%.1f"|format(dashboard.system.averages.disk_percent|default(0)) }}%</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="mb-3">
+                  <div class="text-muted">Operaciones DB</div>
+                  <div class="h3 m-0">{{ dashboard.database.operations_last_hour|default(0) }}</div>
+                  <div class="text-muted small">{{ "%.1f"|format(dashboard.database.success_rate|default(100)) }}% éxito</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Security Metrics -->
+    {% if dashboard.security %}
+    <div class="row row-cards">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Métricas de Seguridad (últimas 24h)</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-sm-6 col-lg-3">
+                <div class="mb-3">
+                  <div class="text-muted">Eventos Críticos</div>
+                  <div class="h2 m-0 text-red">{{ dashboard.security.severity_breakdown.critical|default(0) }}</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <div class="mb-3">
+                  <div class="text-muted">Advertencias</div>
+                  <div class="h2 m-0 text-yellow">{{ dashboard.security.severity_breakdown.warning|default(0) }}</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <div class="mb-3">
+                  <div class="text-muted">Información</div>
+                  <div class="h2 m-0 text-blue">{{ dashboard.security.severity_breakdown.info|default(0) }}</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <div class="mb-3">
+                  <div class="text-muted">Total Eventos</div>
+                  <div class="h2 m-0">{{ dashboard.security.total_events|default(0) }}</div>
+                </div>
+              </div>
+            </div>
+            
+            {% if dashboard.security.event_types %}
+            <div class="table-responsive mt-3">
+              <table class="table table-vcenter">
+                <thead>
+                  <tr>
+                    <th>Tipo de Evento</th>
+                    <th>Cantidad</th>
+                    <th>Porcentaje</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for event_type, count in dashboard.security.event_types.items() %}
+                  <tr>
+                    <td>{{ event_type|replace('_', ' ')|title }}</td>
+                    <td><span class="badge bg-blue">{{ count }}</span></td>
+                    <td class="text-muted">{{ "%.1f"|format((count / dashboard.security.total_events) * 100) }}%</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Auto-refresh every 30 seconds
+setTimeout(function() {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}
