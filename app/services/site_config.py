@@ -1,0 +1,99 @@
+"""
+Site Configuration service for Portfolio Backend API.
+"""
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from app.models.site_config import SiteConfig
+from app.schemas.site_config import SiteConfigCreate, SiteConfigUpdate
+from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
+from app.utils.cache import cached, ContentCache
+from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class SiteConfigService:
+    def get_site_config(self, db: Session) -> Optional[SiteConfig]:
+        """Get site configuration (there should be only one record)."""
+        return db.query(SiteConfig).first()
+
+    def create_site_config(self, db: Session, site_config_data: SiteConfigCreate) -> SiteConfig:
+        """Create site configuration."""
+        try:
+            # Ensure only one site config exists
+            existing = db.query(SiteConfig).first()
+            if existing:
+                raise ValidationError("Site configuration already exists. Use update instead.")
+            
+            site_config = SiteConfig(**site_config_data.dict())
+            db.add(site_config)
+            db.commit()
+            db.refresh(site_config)
+            
+            # Clear any cached site config
+            ContentCache.invalidate_content_cache("site_config")
+            
+            logger.info(f"Site configuration created: {site_config.site_title}")
+            return site_config
+            
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Database error creating site config: {str(e)}")
+            raise DatabaseError(f"Database error: {str(e)}")
+
+    def update_site_config(self, db: Session, site_config_data: SiteConfigUpdate) -> SiteConfig:
+        """Update site configuration."""
+        try:
+            site_config = db.query(SiteConfig).first()
+            if not site_config:
+                raise ContentNotFoundError("site_config", 0)
+
+            # Update fields that are provided
+            update_data = site_config_data.dict(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(site_config, field, value)
+
+            db.commit()
+            db.refresh(site_config)
+            
+            # Clear cached site config
+            ContentCache.invalidate_content_cache("site_config")
+            
+            logger.info(f"Site configuration updated: {site_config.site_title}")
+            return site_config
+            
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Database error updating site config: {str(e)}")
+            raise DatabaseError(f"Database error: {str(e)}")
+
+    def delete_site_config(self, db: Session) -> None:
+        """Delete site configuration."""
+        try:
+            site_config = db.query(SiteConfig).first()
+            if not site_config:
+                raise ContentNotFoundError("site_config", 0)
+
+            db.delete(site_config)
+            db.commit()
+            
+            # Clear cached site config
+            ContentCache.invalidate_content_cache("site_config")
+            
+            logger.info("Site configuration deleted")
+            
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Database error deleting site config: {str(e)}")
+            raise DatabaseError(f"Database error: {str(e)}")
+
+    @cached(ttl=3600, key_prefix="site_config")  # Cache for 1 hour
+    async def get_cached_site_config(self, db: Session) -> Optional[SiteConfig]:
+        """Get cached site configuration."""
+        return self.get_site_config(db)
+
+
+# Global service instance
+site_config_service = SiteConfigService()

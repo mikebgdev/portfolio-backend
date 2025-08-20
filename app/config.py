@@ -25,7 +25,13 @@ class Settings(BaseSettings):
     
     # Application Settings
     debug: bool = False
-    cors_origins: List[str] = ["http://localhost:3000"]
+    # Always allow all origins for development - more permissive approach
+    cors_origins: List[str] = ["*"]
+    
+    @property
+    def get_cors_origins(self) -> List[str]:
+        # Always return permissive CORS for development
+        return ["*"]
     
     # Multilingual Settings
     supported_languages: dict = {

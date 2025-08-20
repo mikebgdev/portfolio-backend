@@ -46,7 +46,7 @@ from app.middleware.performance import (
 from app.utils.cache import cache_manager, warm_cache
 
 # Import routers
-from app.routers import auth, about, skills, projects, experience, education, contact, monitoring
+from app.routers import auth, about, skills, projects, experience, education, contact, site_config, monitoring
 
 # Import admin panel
 from app.admin import create_admin, register_admin_views
@@ -58,10 +58,10 @@ app = FastAPI(
     debug=settings.debug
 )
 
-# Configure CORS
+# Configure CORS - Permissive for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -102,6 +102,7 @@ register_admin_views(admin)
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(site_config.router, prefix="/api/v1")
 app.include_router(about.router, prefix="/api/v1")
 app.include_router(skills.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
@@ -109,6 +110,8 @@ app.include_router(experience.router, prefix="/api/v1")
 app.include_router(education.router, prefix="/api/v1")
 app.include_router(contact.router, prefix="/api/v1")
 app.include_router(monitoring.router, prefix="/api/v1")
+
+# Include admin routers (no prefix to work alongside SQLAdmin)
 
 @app.get("/")
 async def root():

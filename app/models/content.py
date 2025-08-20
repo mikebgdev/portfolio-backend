@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -10,26 +10,28 @@ class About(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Personal Information
-    name = Column(String, nullable=False)  # Nombre
-    last_name = Column(String, nullable=False)  # Apellidos
-    birth_month = Column(Integer, nullable=True)  # Mes de nacimiento (1-12)
-    birth_year = Column(Integer, nullable=True)  # Año de nacimiento
-    email = Column(String, nullable=False)  # Email
-    location = Column(String, nullable=False)  # Ubicación
-    photo_url = Column(String, nullable=True)  # Foto
+    name = Column(String(100), nullable=False)  # Nombre
+    last_name = Column(String(100), nullable=False)  # Apellidos
+    birth_date = Column(Date, nullable=True)  # Fecha de nacimiento (unificado mes y año)
+    email = Column(String(255), nullable=False)  # Email
+    location = Column(String(200), nullable=False)  # Ubicación
+    photo_url = Column(String(500), nullable=True)  # Foto
     
-    # Content fields - Direct translation approach (English + Spanish)
-    # Bio/Description (biografía o contenido/descripción)
+    # Biography content - Direct translation approach (English + Spanish)
     bio_en = Column(Text, nullable=False)  # English bio
     bio_es = Column(Text, nullable=True)   # Spanish bio
     
-    # Extra content (contenido extra opcional)
-    extra_content_en = Column(Text, nullable=True)  # English extra content
-    extra_content_es = Column(Text, nullable=True)  # Spanish extra content
+    # Hero section description - For homepage hero section
+    hero_description_en = Column(Text, nullable=True)  # English hero description
+    hero_description_es = Column(Text, nullable=True)  # Spanish hero description
+    
+    # Job title - Current position
+    job_title_en = Column(String(200), nullable=True)  # English job title
+    job_title_es = Column(String(200), nullable=True)  # Spanish job title
     
     # Nationality (nacionalidad)
-    nationality_en = Column(String, nullable=False, server_default='Spanish')  # English nationality
-    nationality_es = Column(String, nullable=True, server_default='Español')   # Spanish nationality
+    nationality_en = Column(String(100), nullable=False, server_default='Spanish')  # English nationality
+    nationality_es = Column(String(100), nullable=True, server_default='Español')   # Spanish nationality
     
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -37,34 +39,61 @@ class About(Base):
     
 
 
+class SkillCategory(Base):
+    __tablename__ = "skill_categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Category identifier (unique slug)
+    slug = Column(String(100), unique=True, nullable=False, index=True)  # e.g., 'web', 'tools'
+    
+    # Translatable fields - Direct translation approach
+    label_en = Column(String(200), nullable=False)  # English category name
+    label_es = Column(String(200), nullable=True)   # Spanish category name
+    
+    # UI properties
+    icon_name = Column(String(100), nullable=False)  # Icon name for frontend (e.g., 'Globe', 'Wrench')
+    display_order = Column(Integer, default=0)  # For ordering categories
+    active = Column(Boolean, default=True)  # Active/inactive category
+    
+    # Relationship to skills
+    skills = relationship("Skill", back_populates="skill_category", cascade="all, delete-orphan")
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    def __str__(self):
+        """String representation for admin interface"""
+        return f"{self.label_en} ({self.slug})"
+
+
 class Skill(Base):
     __tablename__ = "skills"
 
     id = Column(Integer, primary_key=True, index=True)
     
-    # Skill name (no translation needed)
-    name = Column(String, nullable=False)  # Skill name
+    # Translatable skill name - Direct translation approach
+    name_en = Column(String(200), nullable=False)  # English skill name
+    name_es = Column(String(200), nullable=True)   # Spanish skill name
     
-    # Categories from mikebgdev.com (no translation needed)
-    category = Column(String, nullable=False)  # 'web_development', 'infrastructure', 'tools', 'learning', 'interpersonal'
+    # Foreign key to skill category
+    category_id = Column(Integer, ForeignKey("skill_categories.id"), nullable=True)  # Temporarily nullable for testing
+    skill_category = relationship("SkillCategory", back_populates="skills")
     
-    def __init__(self, **kwargs):
-        # Ensure default values are set immediately
-        if 'is_in_progress' not in kwargs:
-            kwargs['is_in_progress'] = False
-        if 'display_order' not in kwargs:
-            kwargs['display_order'] = 0
-        if 'activa' not in kwargs:
-            kwargs['activa'] = True
-        super().__init__(**kwargs)
+    # UI properties
+    icon_name = Column(String(100), nullable=False)  # Icon name for frontend (e.g., 'Code', 'Server')
+    color = Column(String(50), nullable=True)  # CSS color class (e.g., 'text-cyan-500')
     
-    # Status and ordering (no translation needed)
-    is_in_progress = Column(Boolean, default=False)  # For "Learning/In Progress" skills
+    # Status and ordering
     display_order = Column(Integer, default=0)  # For ordering within category
-    activa = Column(Boolean, default=True)  # Para filtrar en el frontend
+    active = Column(Boolean, default=True)  # Active/inactive skill
+    
+    # Removed custom __init__ as it can cause issues with SQLAdmin forms
     
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
 
 
@@ -74,32 +103,26 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Project info - Direct translation approach
-    title_en = Column(String, nullable=False)  # English title
-    title_es = Column(String, nullable=True)   # Spanish title
+    title_en = Column(String(200), nullable=False)  # English title
+    title_es = Column(String(200), nullable=True)   # Spanish title
     description_en = Column(Text, nullable=False)  # English description  
     description_es = Column(Text, nullable=True)   # Spanish description
     
     # Visual (no translation needed)
-    image_url = Column(String, nullable=True)  # Project image
+    image_url = Column(String(500), nullable=True)  # Project image
     
     # Technology stack (no translation needed)
     technologies = Column(Text, nullable=False)  # Comma-separated or JSON
     
     # Links (no translation needed)
-    source_url = Column(String, nullable=True)  # Source code link
-    demo_url = Column(String, nullable=True)  # Demo link
+    source_url = Column(String(500), nullable=True)  # Source code link
+    demo_url = Column(String(500), nullable=True)  # Demo link
     
     # Display (no translation needed)
     display_order = Column(Integer, default=0)  # For ordering projects
     activa = Column(Boolean, default=True)  # Para filtrar en el frontend
     
-    def __init__(self, **kwargs):
-        # Ensure default values are set immediately
-        if 'display_order' not in kwargs:
-            kwargs['display_order'] = 0
-        if 'activa' not in kwargs:
-            kwargs['activa'] = True
-        super().__init__(**kwargs)
+    # Removed custom __init__ as it can cause issues with SQLAdmin forms
     
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -110,11 +133,11 @@ class Experience(Base):
     __tablename__ = "experience"
 
     id = Column(Integer, primary_key=True, index=True)
-    company = Column(String, nullable=False)  # Company name - No translation needed
+    company = Column(String(200), nullable=False)  # Company name - No translation needed
     
     # Translatable fields - Direct translation approach
-    position_en = Column(String, nullable=False)  # English job title
-    position_es = Column(String, nullable=True)   # Spanish job title
+    position_en = Column(String(200), nullable=False)  # English job title
+    position_es = Column(String(200), nullable=True)   # Spanish job title
     description_en = Column(Text, nullable=False)  # English job responsibilities
     description_es = Column(Text, nullable=True)   # Spanish job responsibilities
     
@@ -123,7 +146,7 @@ class Experience(Base):
     end_date = Column(DateTime, nullable=True)  # NULL for current position
     
     # Location and ordering (no translation needed)
-    location = Column(String, nullable=True)
+    location = Column(String(200), nullable=True)
     display_order = Column(Integer, default=0)  # For ordering experiences
     activo = Column(Boolean, default=True)  # Para filtrar en el frontend
     
@@ -136,13 +159,13 @@ class Education(Base):
     __tablename__ = "education"
 
     id = Column(Integer, primary_key=True, index=True)
-    institution = Column(String, nullable=False)  # Institution name - No translation needed
+    institution = Column(String(200), nullable=False)  # Institution name - No translation needed
     
     # Translatable fields - Direct translation approach
-    degree_en = Column(String, nullable=False)  # English degree/course title
-    degree_es = Column(String, nullable=True)   # Spanish degree/course title
-    field_of_study_en = Column(String, nullable=True)  # English field of study
-    field_of_study_es = Column(String, nullable=True)  # Spanish field of study
+    degree_en = Column(String(200), nullable=False)  # English degree/course title
+    degree_es = Column(String(200), nullable=True)   # Spanish degree/course title
+    field_of_study_en = Column(String(200), nullable=True)  # English field of study
+    field_of_study_es = Column(String(200), nullable=True)  # Spanish field of study
     description_en = Column(Text, nullable=True)  # English description
     description_es = Column(Text, nullable=True)  # Spanish description
     
@@ -151,7 +174,7 @@ class Education(Base):
     end_date = Column(DateTime, nullable=True)  # NULL for ongoing
     
     # Additional info and ordering (no translation needed)
-    location = Column(String, nullable=True)
+    location = Column(String(200), nullable=True)
     display_order = Column(Integer, default=0)  # For ordering education entries
     activo = Column(Boolean, default=True)  # Para filtrar en el frontend
     
@@ -166,14 +189,14 @@ class Contact(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Contact Methods (no translation needed)
-    email = Column(String, nullable=False)  # Primary contact email
-    phone = Column(String, nullable=True)  # Phone number
+    email = Column(String(255), nullable=False)  # Primary contact email
+    phone = Column(String(50), nullable=True)  # Phone number
     
     # Social Media Links (no translation needed)
-    linkedin_url = Column(String, nullable=True)  # LinkedIn profile
-    github_url = Column(String, nullable=True)  # GitHub profile
-    twitter_url = Column(String, nullable=True)  # Twitter profile
-    instagram_url = Column(String, nullable=True)  # Instagram profile
+    linkedin_url = Column(String(500), nullable=True)  # LinkedIn profile
+    github_url = Column(String(500), nullable=True)  # GitHub profile
+    twitter_url = Column(String(500), nullable=True)  # Twitter profile
+    instagram_url = Column(String(500), nullable=True)  # Instagram profile
     
     # Contact Form Settings (no translation needed)
     contact_form_enabled = Column(Boolean, default=True)  # Enable/disable contact form
@@ -183,7 +206,7 @@ class Contact(Base):
     contact_message_es = Column(Text, nullable=True)  # Spanish contact message
     
     # CV/Resume file
-    cv_file_url = Column(String, nullable=True)  # URL to CV file
+    cv_file_url = Column(String(500), nullable=True)  # URL to CV file
     
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())

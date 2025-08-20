@@ -42,5 +42,5 @@ async def update_about(
     current_user: User = Depends(get_current_admin_user)
 ):
     """Update about section content (admin only)."""
-    updated_about = about_service.update_about(db, about_data)
+    updated_about = await about_service.update_about(db, about_data)
     return AboutResponse.model_validate(updated_about)

@@ -1,17 +1,17 @@
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
-from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from wtforms import SelectField, BooleanField
-from wtforms.validators import DataRequired
+
 from app.database import engine
 from app.models.user import User
-from app.models.content import About, Skill, Project, Experience, Education, Contact
+from app.models.content import About, Skill, SkillCategory, Project, Experience, Education, Contact
+from app.models.site_config import SiteConfig
 
 
 class AdminAuth(AuthenticationBackend):
+    """Authentication backend for SQLAdmin"""
+    
     async def login(self, request: Request) -> bool:
         form = await request.form()
         username, password = form["username"], form["password"]
@@ -38,7 +38,6 @@ class AdminAuth(AuthenticationBackend):
         return False
 
     async def logout(self, request: Request) -> bool:
-        # Clear session
         request.session.clear()
         return True
 
@@ -46,10 +45,12 @@ class AdminAuth(AuthenticationBackend):
         return request.session.get("authenticated", False)
 
 
+# Create authentication backend
 authentication_backend = AdminAuth(secret_key="your-admin-secret-key")
 
-# Create admin instance - we'll initialize it in main.py
+
 def create_admin(app):
+    """Create and configure SQLAdmin instance"""
     admin = Admin(
         app=app,
         engine=engine,
@@ -60,370 +61,252 @@ def create_admin(app):
     return admin
 
 
-# User Admin View
+# ==================== USER ADMIN ====================
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.email, User.name, User.role, User.is_active, User.created_at]
-    column_searchable_list = [User.email, User.name]
-    column_sortable_list = [User.id, User.email, User.name, User.created_at]
-    column_details_exclude_list = [User.created_at, User.updated_at]
-    can_delete = False  # Prevent accidental user deletion
-    
-    # Custom labels for better UX
-    column_labels = {
-        "email": "Email",
-        "name": "Nombre",
-        "role": "Rol",
-        "is_active": "Activo",
-        "created_at": "Fecha Creación",
-        "updated_at": "Fecha Actualización"
-    }
-    
     name = "Usuario"
     name_plural = "Usuarios"
     icon = "fa-solid fa-user"
-
-
-# About Admin View
-class AboutAdmin(ModelView, model=About):
-    column_list = [About.id, About.name, About.last_name, About.email, About.location, About.birth_month, About.birth_year, About.created_at]
-    column_details_exclude_list = [About.updated_at, About.created_at]
     
-    # Format datetime columns
-    column_formatters = {
-        About.created_at: lambda m, a: m.created_at.strftime("%Y-%m-%d %H:%M") if m.created_at else "",
-        About.updated_at: lambda m, a: m.updated_at.strftime("%Y-%m-%d %H:%M") if m.updated_at else "",
-    }
-    form_columns = [
-        # Personal info
-        About.name, About.last_name, About.birth_month, About.birth_year, 
-        About.email, About.location, About.photo_url,
-        # Nationality (English & Spanish)
-        About.nationality_en, About.nationality_es,
-        # Bio (English & Spanish)  
-        About.bio_en, About.bio_es,
-        # Extra content (English & Spanish)
-        About.extra_content_en, About.extra_content_es
-    ]
-    column_searchable_list = [About.name, About.email, About.location]
+    form_excluded_columns = [User.id, User.created_at, User.updated_at]
     
-    # Custom labels for better UX
+    column_list = [User.id, User.email, User.name, User.role, User.is_active]
+    column_searchable_list = [User.email, User.name]
+    column_sortable_list = [User.id, User.email, User.name]
+    
     column_labels = {
-        "name": "Nombre",
-        "last_name": "Apellidos", 
-        "birth_month": "Mes Nacimiento",
-        "birth_year": "Año Nacimiento",
-        "email": "Email",
-        "location": "Ubicación",
-        "photo_url": "Foto URL",
-        "nationality_en": "Nacionalidad (Inglés)",
-        "nationality_es": "Nacionalidad (Español)",
-        "bio_en": "Biografía (Inglés)",
-        "bio_es": "Biografía (Español)",
-        "extra_content_en": "Contenido Extra (Inglés)",
-        "extra_content_es": "Contenido Extra (Español)",
-        "created_at": "Fecha Creación"
+        "id": "ID",
+        "email": "Correo electrónico", 
+        "name": "Nombre completo",
+        "password_hash": "Contraseña (hash)",
+        "role": "Rol del usuario",
+        "is_active": "¿Usuario activo?",
+        "created_at": "Fecha de registro",
+        "updated_at": "Última modificación"
     }
+
+
+# ==================== SITE CONFIG ADMIN ====================
+class SiteConfigAdmin(ModelView, model=SiteConfig):
+    name = "Configuración del Sitio"
+    name_plural = "Configuración del Sitio" 
+    icon = "fa-solid fa-cogs"
     
+    form_excluded_columns = [SiteConfig.id, SiteConfig.created_at, SiteConfig.updated_at]
+    
+    column_list = [SiteConfig.id, SiteConfig.site_title, SiteConfig.brand_name]
+    column_searchable_list = [SiteConfig.site_title, SiteConfig.brand_name]
+    
+    column_labels = {
+        "id": "ID",
+        "site_title": "Título del sitio web",
+        "brand_name": "Nombre de la marca/empresa",
+        "meta_description": "Descripción para SEO (meta description)",
+        "meta_keywords": "Palabras clave para SEO",
+        "created_at": "Fecha de creación",
+        "updated_at": "Última modificación"
+    }
+
+
+# ==================== ABOUT ADMIN ====================
+class AboutAdmin(ModelView, model=About):
     name = "Acerca de"
     name_plural = "Acerca de"
     icon = "fa-solid fa-info-circle"
-
-
-# Skill Admin View
-class SkillAdmin(ModelView, model=Skill):
-    column_list = [Skill.id, Skill.name, Skill.category, Skill.display_order, Skill.activa, Skill.is_in_progress]
-    column_searchable_list = [Skill.name, Skill.category]
-    column_sortable_list = [Skill.id, Skill.name, Skill.category, Skill.display_order, Skill.created_at]
-    column_details_exclude_list = [Skill.created_at]
     
-    # Format datetime columns
-    column_formatters = {
-        Skill.created_at: lambda m, a: m.created_at.strftime("%Y-%m-%d %H:%M") if m.created_at else "",
-    }
-    form_columns = [
-        # Working fields
-        Skill.name,
-        Skill.category,
-        Skill.display_order,
-        # Boolean fields - let's try to include them
-        Skill.is_in_progress,
-        Skill.activa
-    ]
+    form_excluded_columns = [About.id, About.created_at, About.updated_at]
     
-    # Custom form overrides for boolean fields using SelectField
-    form_overrides = {
-        "is_in_progress": SelectField,
-        "activa": SelectField
-    }
+    column_list = [About.id, About.name, About.last_name, About.email]
+    column_searchable_list = [About.name, About.email]
     
-    form_args = {
-        "is_in_progress": {
-            "choices": [(True, "Sí"), (False, "No")],
-            "coerce": lambda x: x == 'True' if isinstance(x, str) else bool(x)
-        },
-        "activa": {
-            "choices": [(True, "Sí"), (False, "No")], 
-            "coerce": lambda x: x == 'True' if isinstance(x, str) else bool(x)
-        }
-    }
-    column_filters = [Skill.category, Skill.is_in_progress, Skill.activa]
-    
-    # Custom labels for better UX
     column_labels = {
+        "id": "ID",
         "name": "Nombre",
-        "category": "Categoría",
-        "activa": "Activa",
-        "is_in_progress": "En Progreso",
-        "display_order": "Orden",
-        "created_at": "Fecha Creación"
+        "last_name": "Apellidos", 
+        "birth_date": "Fecha de nacimiento",
+        "email": "Correo electrónico",
+        "location": "Ubicación/Ciudad",
+        "photo_url": "URL de la foto de perfil",
+        "bio_en": "Biografía en inglés",
+        "bio_es": "Biografía en español",
+        "hero_description_en": "Descripción hero (inglés)",
+        "hero_description_es": "Descripción hero (español)",
+        "job_title_en": "Título profesional (inglés)",
+        "job_title_es": "Título profesional (español)",
+        "nationality_en": "Nacionalidad (inglés)",
+        "nationality_es": "Nacionalidad (español)",
+        "created_at": "Fecha de creación",
+        "updated_at": "Última modificación"
     }
+
+
+# ==================== SKILL CATEGORY ADMIN ====================
+class SkillCategoryAdmin(ModelView, model=SkillCategory):
+    name = "Categoría de Habilidades"
+    name_plural = "Categorías de Habilidades"
+    icon = "fa-solid fa-tags"
     
-    # Note: Boolean fields now use SelectField with Sí/No options
-    # This avoids checkbox compatibility issues with SQLAdmin
+    # Exclude relationship fields - skills are managed from Skill admin
+    form_excluded_columns = [SkillCategory.id, SkillCategory.created_at, SkillCategory.updated_at, SkillCategory.skills]
     
+    column_list = [SkillCategory.id, SkillCategory.slug, SkillCategory.label_en, SkillCategory.active]
+    column_searchable_list = [SkillCategory.slug, SkillCategory.label_en]
+    
+    column_labels = {
+        "id": "ID",
+        "slug": "Identificador único (ej: 'web', 'tools')",
+        "label_en": "Nombre en inglés",
+        "label_es": "Nombre en español",
+        "icon_name": "Nombre del icono (ej: 'Globe', 'Wrench')",
+        "display_order": "Orden de visualización",
+        "active": "¿Categoría activa?",
+        "created_at": "Fecha de creación",
+        "updated_at": "Última modificación"
+    }
+
+
+# ==================== SKILL ADMIN ====================  
+class SkillAdmin(ModelView, model=Skill):
     name = "Habilidad"
     name_plural = "Habilidades"
-    icon = "fa-solid fa-cog"
+    icon = "fa-solid fa-star"
+    
+    form_excluded_columns = [Skill.id, Skill.created_at, Skill.updated_at]
+    
+    column_list = [Skill.id, Skill.name_en, Skill.skill_category, Skill.active]
+    column_searchable_list = [Skill.name_en]
+    
+    column_labels = {
+        "id": "ID",
+        "name_en": "Nombre en inglés",
+        "name_es": "Nombre en español",
+        "skill_category": "Categoría",
+        "category_id": "Categoría",
+        "icon_name": "Nombre del icono (ej: 'Code', 'Server')",
+        "color": "Color CSS (ej: 'text-cyan-500')",
+        "display_order": "Orden dentro de la categoría",
+        "active": "¿Habilidad activa?",
+        "created_at": "Fecha de creación",
+        "updated_at": "Última modificación"
+    }
 
 
-# Project Admin View
+# ==================== PROJECT ADMIN ====================
 class ProjectAdmin(ModelView, model=Project):
-    column_list = [Project.id, Project.title_en, Project.title_es, Project.technologies, Project.display_order, Project.activa]
-    column_searchable_list = [Project.title_en, Project.title_es, Project.description_en, Project.description_es, Project.technologies]
-    column_sortable_list = [Project.id, Project.title_en, Project.display_order, Project.created_at]
-    column_details_exclude_list = [Project.created_at]
-    
-    # Format datetime columns
-    column_formatters = {
-        Project.created_at: lambda m, a: m.created_at.strftime("%Y-%m-%d %H:%M") if m.created_at else "",
-    }
-    form_columns = [
-        # Project info (English & Spanish)
-        Project.title_en, Project.title_es,
-        Project.description_en, Project.description_es,
-        # Media and links (no translation needed)
-        Project.image_url, Project.technologies,
-        Project.source_url, Project.demo_url,
-        # Settings (no translation needed)
-        Project.display_order,
-        # Boolean field
-        Project.activa
-    ]
-    
-    # Custom form overrides for boolean fields using SelectField
-    form_overrides = {
-        "activa": SelectField
-    }
-    
-    form_args = {
-        "activa": {
-            "choices": [(True, "Sí"), (False, "No")],
-            "coerce": lambda x: x == 'True' if isinstance(x, str) else bool(x)
-        }
-    }
-    column_filters = [Project.activa]
-    
-    # Custom labels for better UX
-    column_labels = {
-        "title_en": "Título (Inglés)",
-        "title_es": "Título (Español)",
-        "description_en": "Descripción (Inglés)",
-        "description_es": "Descripción (Español)",
-        "image_url": "Imagen URL",
-        "technologies": "Tecnologías",
-        "source_url": "Código Fuente",
-        "demo_url": "Demo URL",
-        "display_order": "Orden",
-        "activa": "Activa",
-        "created_at": "Fecha Creación"
-    }
-    
-    # Note: Boolean field now uses SelectField with Sí/No options
-    # This avoids checkbox compatibility issues with SQLAdmin
-    
-    name = "Proyecto"
-    name_plural = "Proyectos" 
+    name = "Proyecto" 
+    name_plural = "Proyectos"
     icon = "fa-solid fa-folder"
+    
+    form_excluded_columns = [Project.id, Project.created_at]
+    
+    column_list = [Project.id, Project.title_en, Project.activa]
+    column_searchable_list = [Project.title_en]
+    
+    column_labels = {
+        "id": "ID",
+        "title_en": "Título del proyecto (inglés)", 
+        "title_es": "Título del proyecto (español)",
+        "description_en": "Descripción del proyecto (inglés)",
+        "description_es": "Descripción del proyecto (español)",
+        "image_url": "URL de la imagen del proyecto",
+        "technologies": "Tecnologías utilizadas (separadas por coma)",
+        "source_url": "URL del código fuente (GitHub, etc.)",
+        "demo_url": "URL de la demo en vivo",
+        "display_order": "Orden de visualización",
+        "activa": "¿Proyecto activo/visible?",
+        "created_at": "Fecha de creación"
+    }
 
 
-# Experience Admin View
+# ==================== EXPERIENCE ADMIN ====================
 class ExperienceAdmin(ModelView, model=Experience):
-    column_list = [Experience.id, Experience.company, Experience.position_en, Experience.start_date, Experience.end_date, Experience.activo]
-    column_searchable_list = [Experience.company, Experience.position_en, Experience.position_es, Experience.location]
-    column_sortable_list = [Experience.id, Experience.company, Experience.display_order, Experience.start_date, Experience.created_at]
-    column_details_exclude_list = [Experience.created_at]
-    
-    # Format datetime columns
-    column_formatters = {
-        Experience.created_at: lambda m, a: m.created_at.strftime("%Y-%m-%d %H:%M") if m.created_at else "",
-        Experience.start_date: lambda m, a: m.start_date.strftime("%Y-%m-%d %H:%M") if m.start_date else "",
-        Experience.end_date: lambda m, a: m.end_date.strftime("%Y-%m-%d %H:%M") if m.end_date else "",
-    }
-    form_columns = [
-        # Company and dates (no translation needed)
-        Experience.company, Experience.start_date, Experience.end_date, Experience.location,
-        # Position and description (English & Spanish)
-        Experience.position_en, Experience.position_es,
-        Experience.description_en, Experience.description_es,
-        # Settings (no translation needed)
-        Experience.display_order,
-        # Boolean field
-        Experience.activo
-    ]
-    
-    # Custom form overrides for boolean fields using SelectField
-    form_overrides = {
-        "activo": SelectField
-    }
-    
-    form_args = {
-        "activo": {
-            "choices": [(True, "Sí"), (False, "No")],
-            "coerce": lambda x: x == 'True' if isinstance(x, str) else bool(x)
-        }
-    }
-    
-    # Custom labels for better UX
-    column_labels = {
-        "company": "Empresa",
-        "position_en": "Puesto (Inglés)",
-        "position_es": "Puesto (Español)",
-        "description_en": "Descripción (Inglés)",
-        "description_es": "Descripción (Español)",
-        "start_date": "Fecha Inicio",
-        "end_date": "Fecha Fin",
-        "location": "Ubicación",
-        "display_order": "Orden",
-        "activo": "Activo",
-        "created_at": "Fecha Creación"
-    }
-    
     name = "Experiencia"
-    name_plural = "Experiencias"
+    name_plural = "Experiencias" 
     icon = "fa-solid fa-briefcase"
-
-
-# Education Admin View  
-class EducationAdmin(ModelView, model=Education):
-    column_list = [Education.id, Education.institution, Education.degree_en, Education.start_date, Education.end_date, Education.activo]
-    column_searchable_list = [Education.institution, Education.degree_en, Education.degree_es, Education.field_of_study_en, Education.field_of_study_es]
-    column_sortable_list = [Education.id, Education.institution, Education.display_order, Education.start_date, Education.created_at]
-    column_details_exclude_list = [Education.created_at]
     
-    # Format datetime columns
-    column_formatters = {
-        Education.created_at: lambda m, a: m.created_at.strftime("%Y-%m-%d %H:%M") if m.created_at else "",
-        Education.start_date: lambda m, a: m.start_date.strftime("%Y-%m-%d %H:%M") if m.start_date else "",
-        Education.end_date: lambda m, a: m.end_date.strftime("%Y-%m-%d %H:%M") if m.end_date else "",
-    }
-    form_columns = [
-        # Institution and dates (no translation needed)
-        Education.institution, Education.start_date, Education.end_date, Education.location,
-        # Degree and field (English & Spanish)
-        Education.degree_en, Education.degree_es,
-        Education.field_of_study_en, Education.field_of_study_es,
-        Education.description_en, Education.description_es,
-        # Settings (no translation needed)
-        Education.display_order,
-        # Boolean field
-        Education.activo
-    ]
+    form_excluded_columns = [Experience.id, Experience.created_at]
     
-    # Custom form overrides for boolean fields using SelectField
-    form_overrides = {
-        "activo": SelectField
-    }
+    column_list = [Experience.id, Experience.company, Experience.position_en, Experience.activo]
+    column_searchable_list = [Experience.company, Experience.position_en]
     
-    form_args = {
-        "activo": {
-            "choices": [(True, "Sí"), (False, "No")],
-            "coerce": lambda x: x == 'True' if isinstance(x, str) else bool(x)
-        }
-    }
-    
-    # Custom labels for better UX
     column_labels = {
-        "institution": "Institución",
-        "degree_en": "Título (Inglés)",
-        "degree_es": "Título (Español)",
-        "field_of_study_en": "Campo de Estudio (Inglés)",
-        "field_of_study_es": "Campo de Estudio (Español)",
-        "description_en": "Descripción (Inglés)",
-        "description_es": "Descripción (Español)",
-        "start_date": "Fecha Inicio",
-        "end_date": "Fecha Fin",
-        "location": "Ubicación",
-        "display_order": "Orden",
-        "activo": "Activo",
-        "created_at": "Fecha Creación"
+        "id": "ID",
+        "company": "Nombre de la empresa",
+        "position_en": "Cargo/Puesto (inglés)",
+        "position_es": "Cargo/Puesto (español)",
+        "description_en": "Descripción del trabajo (inglés)",
+        "description_es": "Descripción del trabajo (español)",
+        "start_date": "Fecha de inicio",
+        "end_date": "Fecha de fin (vacío si es trabajo actual)",
+        "location": "Ubicación del trabajo",
+        "display_order": "Orden de visualización",
+        "activo": "¿Experiencia activa/visible?",
+        "created_at": "Fecha de creación"
     }
-    
+
+
+# ==================== EDUCATION ADMIN ====================
+class EducationAdmin(ModelView, model=Education):
     name = "Educación"
     name_plural = "Educación"
     icon = "fa-solid fa-graduation-cap"
-
-
-# Contact Admin View
-class ContactAdmin(ModelView, model=Contact):
-    column_list = [Contact.id, Contact.email, Contact.phone, Contact.linkedin_url, Contact.github_url, Contact.cv_file_url]
-    column_searchable_list = [Contact.email, Contact.phone]
-    column_sortable_list = [Contact.id, Contact.email, Contact.created_at]
-    column_details_exclude_list = [Contact.updated_at, Contact.created_at]
     
-    # Format datetime columns
-    column_formatters = {
-        Contact.created_at: lambda m, a: m.created_at.strftime("%Y-%m-%d %H:%M") if m.created_at else "",
-        Contact.updated_at: lambda m, a: m.updated_at.strftime("%Y-%m-%d %H:%M") if m.updated_at else "",
-    }
-    form_columns = [
-        # Contact info (no translation needed) 
-        Contact.email, Contact.phone, Contact.cv_file_url,
-        # Social media links (no translation needed)
-        Contact.linkedin_url, Contact.github_url, Contact.twitter_url, Contact.instagram_url,
-        # Contact messages (English & Spanish)
-        Contact.contact_message_en, Contact.contact_message_es,
-        # Boolean field
-        Contact.contact_form_enabled
-    ]
+    form_excluded_columns = [Education.id, Education.created_at]
     
-    # Custom form overrides for boolean fields using SelectField
-    form_overrides = {
-        "contact_form_enabled": SelectField
-    }
+    column_list = [Education.id, Education.institution, Education.degree_en, Education.activo]
+    column_searchable_list = [Education.institution, Education.degree_en]
     
-    form_args = {
-        "contact_form_enabled": {
-            "choices": [(True, "Sí"), (False, "No")],
-            "coerce": lambda x: x == 'True' if isinstance(x, str) else bool(x)
-        }
-    }
-    column_filters = [Contact.contact_form_enabled]
-    
-    # Custom labels for better UX
     column_labels = {
-        "email": "Email",
-        "phone": "Teléfono",
-        "linkedin_url": "LinkedIn",
-        "github_url": "GitHub",
-        "twitter_url": "Twitter",
-        "instagram_url": "Instagram",
-        "contact_form_enabled": "Formulario Habilitado",
-        "contact_message_en": "Mensaje de Contacto (Inglés)",
-        "contact_message_es": "Mensaje de Contacto (Español)",
-        "cv_file_url": "Archivo CV",
-        "created_at": "Fecha Creación",
-        "updated_at": "Fecha Actualización"
+        "id": "ID", 
+        "institution": "Institución educativa",
+        "degree_en": "Título/Grado obtenido (inglés)",
+        "degree_es": "Título/Grado obtenido (español)",
+        "field_of_study_en": "Campo de estudio (inglés)",
+        "field_of_study_es": "Campo de estudio (español)",
+        "description_en": "Descripción adicional (inglés)",
+        "description_es": "Descripción adicional (español)",
+        "start_date": "Fecha de inicio",
+        "end_date": "Fecha de graduación (vacío si en curso)",
+        "location": "Ubicación de la institución",
+        "display_order": "Orden de visualización",
+        "activo": "¿Educación activa/visible?",
+        "created_at": "Fecha de creación"
     }
-    
+
+
+# ==================== CONTACT ADMIN ====================
+class ContactAdmin(ModelView, model=Contact):
     name = "Contacto"
     name_plural = "Contacto"
     icon = "fa-solid fa-envelope"
+    
+    form_excluded_columns = [Contact.id, Contact.created_at, Contact.updated_at]
+    
+    column_list = [Contact.id, Contact.email, Contact.phone]
+    column_searchable_list = [Contact.email]
+    
+    column_labels = {
+        "id": "ID",
+        "email": "Correo electrónico principal",
+        "phone": "Número de teléfono", 
+        "linkedin_url": "URL del perfil de LinkedIn",
+        "github_url": "URL del perfil de GitHub",
+        "twitter_url": "URL del perfil de Twitter",
+        "instagram_url": "URL del perfil de Instagram",
+        "contact_form_enabled": "¿Formulario de contacto activo?",
+        "contact_message_en": "Mensaje de contacto (inglés)",
+        "contact_message_es": "Mensaje de contacto (español)",
+        "cv_file_url": "URL del archivo CV/Resume",
+        "created_at": "Fecha de creación",
+        "updated_at": "Última modificación"
+    }
 
 
 def register_admin_views(admin):
-    """Register all admin views with the admin instance."""
+    """Register all admin views with the admin instance"""
     admin.add_view(UserAdmin)
+    admin.add_view(SiteConfigAdmin)
     admin.add_view(AboutAdmin)
+    admin.add_view(SkillCategoryAdmin)
     admin.add_view(SkillAdmin)
     admin.add_view(ProjectAdmin)
     admin.add_view(ExperienceAdmin)

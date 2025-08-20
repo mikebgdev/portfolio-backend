@@ -1,6 +1,6 @@
 from pydantic import BaseModel, HttpUrl, validator, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
 import re
 
 
@@ -11,16 +11,19 @@ import re
 class AboutBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="First name")
     last_name: str = Field(..., min_length=1, max_length=100, description="Last name")
-    birth_month: Optional[int] = Field(None, ge=1, le=12, description="Birth month (1-12)")
-    birth_year: Optional[int] = Field(None, ge=1900, le=2100, description="Birth year")
+    birth_date: Optional[date] = Field(None, description="Birth date")
     email: str = Field(..., description="Email address")
     location: str = Field(..., min_length=1, max_length=200, description="Location")
     photo_url: Optional[str] = Field(None, description="Photo URL")
-    # Multilingual fields - English required, Spanish optional
+    # Biography content - English required, Spanish optional
     bio_en: str = Field(..., min_length=10, max_length=5000, description="Biography in English")
     bio_es: Optional[str] = Field(None, max_length=5000, description="Biography in Spanish")
-    extra_content_en: Optional[str] = Field(None, max_length=2000, description="Extra content in English")
-    extra_content_es: Optional[str] = Field(None, max_length=2000, description="Extra content in Spanish")
+    # Hero section description
+    hero_description_en: Optional[str] = Field(None, max_length=500, description="Hero description in English")
+    hero_description_es: Optional[str] = Field(None, max_length=500, description="Hero description in Spanish")
+    # Job title
+    job_title_en: Optional[str] = Field(None, max_length=200, description="Job title in English")
+    job_title_es: Optional[str] = Field(None, max_length=200, description="Job title in Spanish")
     nationality_en: str = Field(..., min_length=1, max_length=100, description="Nationality in English")
     nationality_es: Optional[str] = Field(None, max_length=100, description="Nationality in Spanish")
 
@@ -43,7 +46,7 @@ class AboutBase(BaseModel):
             raise ValueError('Field cannot be empty or only whitespace')
         return v.strip() if v else v
 
-    @validator('bio_en', 'bio_es', 'extra_content_en', 'extra_content_es')
+    @validator('bio_en', 'bio_es', 'hero_description_en', 'hero_description_es', 'job_title_en', 'job_title_es')
     def validate_content_fields(cls, v):
         if v:
             # Remove excessive whitespace
@@ -63,16 +66,19 @@ class AboutCreate(AboutBase):
 class AboutUpdate(BaseModel):
     name: Optional[str] = None
     last_name: Optional[str] = None
-    birth_month: Optional[int] = None
-    birth_year: Optional[int] = None
+    birth_date: Optional[date] = None
     email: Optional[str] = None
     location: Optional[str] = None
     photo_url: Optional[str] = None
-    # Multilingual fields
+    # Biography content
     bio_en: Optional[str] = None
     bio_es: Optional[str] = None
-    extra_content_en: Optional[str] = None
-    extra_content_es: Optional[str] = None
+    # Hero section description
+    hero_description_en: Optional[str] = None
+    hero_description_es: Optional[str] = None
+    # Job title
+    job_title_en: Optional[str] = None
+    job_title_es: Optional[str] = None
     nationality_en: Optional[str] = None
     nationality_es: Optional[str] = None
 
@@ -100,21 +106,91 @@ class AboutResponse(AboutBase):
         return self.nationality_es if self.language == 'es' and self.nationality_es else self.nationality_en
         
     @property
-    def extra_content(self) -> Optional[str]:
-        """Return extra content in requested language (fallback to English)"""
-        if self.language == 'es' and self.extra_content_es:
-            return self.extra_content_es
-        return self.extra_content_en
+    def hero_description(self) -> Optional[str]:
+        """Return hero description in requested language (fallback to English)"""
+        if self.language == 'es' and self.hero_description_es:
+            return self.hero_description_es
+        return self.hero_description_en
+        
+    @property
+    def job_title(self) -> Optional[str]:
+        """Return job title in requested language (fallback to English)"""
+        if self.language == 'es' and self.job_title_es:
+            return self.job_title_es
+        return self.job_title_en
+
+
+# SkillCategory Schemas
+class SkillCategoryBase(BaseModel):
+    slug: str = Field(..., min_length=1, max_length=50, description="Category slug (unique identifier)")
+    label_en: str = Field(..., min_length=1, max_length=100, description="Category label in English")
+    label_es: Optional[str] = Field(None, max_length=100, description="Category label in Spanish")
+    icon_name: str = Field(..., min_length=1, max_length=50, description="Icon name for frontend")
+    display_order: Optional[int] = Field(0, ge=0, le=1000, description="Display order")
+    active: Optional[bool] = Field(True, description="Whether category is active")
+
+    @validator('slug')
+    def validate_slug(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Slug cannot be empty')
+        # Ensure slug is lowercase and contains only letters, numbers, and underscores
+        import re
+        if not re.match(r'^[a-z0-9_]+$', v.strip().lower()):
+            raise ValueError('Slug can only contain lowercase letters, numbers, and underscores')
+        return v.strip().lower()
+
+
+class SkillCategoryCreate(SkillCategoryBase):
+    pass
+
+
+class SkillCategoryUpdate(BaseModel):
+    slug: Optional[str] = None
+    label_en: Optional[str] = None
+    label_es: Optional[str] = None
+    icon_name: Optional[str] = None
+    display_order: Optional[int] = None
+    active: Optional[bool] = None
+
+
+class SkillCategoryResponse(SkillCategoryBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    language: Optional[str] = 'en'
+    available_languages: List[str] = ['en', 'es']
+
+    class Config:
+        from_attributes = True
+        
+    @property
+    def label(self) -> str:
+        """Return category label in requested language (fallback to English)"""
+        return self.label_es if self.language == 'es' and self.label_es else self.label_en
 
 
 # Skill Schemas
 class SkillBase(BaseModel):
-    # Skill name (no translation needed)
-    name: str
-    category: str  # 'web_development', 'infrastructure', 'tools', 'learning', 'interpersonal'
-    is_in_progress: Optional[bool] = False
-    display_order: Optional[int] = 0
-    activa: Optional[bool] = True
+    # Translatable skill name
+    name_en: str = Field(..., min_length=1, max_length=100, description="Skill name in English")
+    name_es: Optional[str] = Field(None, max_length=100, description="Skill name in Spanish")
+    category_id: int = Field(..., gt=0, description="Category ID")
+    icon_name: str = Field(..., min_length=1, max_length=50, description="Icon name for frontend")
+    color: Optional[str] = Field(None, max_length=50, description="CSS color class")
+    display_order: Optional[int] = Field(0, ge=0, le=1000, description="Display order within category")
+    active: Optional[bool] = Field(True, description="Whether skill is active")
+
+    @validator('color')
+    def validate_color(cls, v):
+        if v:
+            # Basic validation for CSS color classes
+            if not v.strip():
+                return None
+            # Allow common CSS color patterns
+            import re
+            if not re.match(r'^(text-\w+-\d+|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|\w+)$', v.strip()):
+                raise ValueError('Invalid color format. Use CSS classes like "text-blue-500" or hex colors')
+        return v.strip() if v else None
 
 
 class SkillCreate(SkillBase):
@@ -122,21 +198,56 @@ class SkillCreate(SkillBase):
 
 
 class SkillUpdate(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
-    is_in_progress: Optional[bool] = None
+    name_en: Optional[str] = None
+    name_es: Optional[str] = None
+    category_id: Optional[int] = None
+    icon_name: Optional[str] = None
+    color: Optional[str] = None
     display_order: Optional[int] = None
-    activa: Optional[bool] = None
+    active: Optional[bool] = None
 
 
 class SkillResponse(SkillBase):
     id: int
     created_at: datetime
+    updated_at: Optional[datetime] = None
     language: Optional[str] = 'en'
     available_languages: List[str] = ['en', 'es']
 
     class Config:
         from_attributes = True
+        
+    @property
+    def name(self) -> str:
+        """Return skill name in requested language (fallback to English)"""
+        return self.name_es if self.language == 'es' and self.name_es else self.name_en
+
+
+# Nested Skills Response Schemas (for the grouped structure)
+class SkillNestedResponse(BaseModel):
+    """Simplified skill response for nested structure"""
+    name: str
+    icon_name: str
+    color: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class CategoryWithSkillsResponse(BaseModel):
+    """Category with nested skills for the grouped endpoint response"""
+    id: str  # This will be the slug
+    label: str
+    icon_name: str
+    skills: List[SkillNestedResponse]
+    
+    class Config:
+        from_attributes = True
+
+
+class SkillsGroupedResponse(BaseModel):
+    """Main response schema for grouped skills endpoint"""
+    categories: List[CategoryWithSkillsResponse]
 
 
 # Project Schemas
