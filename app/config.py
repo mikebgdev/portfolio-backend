@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import List, Optional
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -17,19 +17,8 @@ class Settings(BaseSettings):
     # Authentication (only for SQLAdmin)
     secret_key: str
     
-    # Google OAuth (optional for CI/testing)
-    google_client_id: Optional[str] = None
-    google_client_secret: Optional[str] = None
-    
     # Application Settings
     debug: bool = False
-    # Always allow all origins for development - more permissive approach
-    cors_origins: List[str] = ["*"]
-    
-    @property
-    def get_cors_origins(self) -> List[str]:
-        # Always return permissive CORS for development
-        return ["*"]
     
     # Multilingual Settings
     supported_languages: dict = {
