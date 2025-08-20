@@ -53,22 +53,37 @@ def upgrade() -> None:
     op.add_column('skills', sa.Column('active', sa.Boolean(), nullable=True))
     op.add_column('skills', sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True))
     
-    # Migrate existing data
-    connection.execute(sa.text("""
-        UPDATE skills SET 
-            name_en = name,
-            name_es = name,
-            category_id = CASE 
-                WHEN category = 'web_development' THEN (SELECT id FROM skill_categories WHERE slug = 'web')
-                WHEN category = 'tools' THEN (SELECT id FROM skill_categories WHERE slug = 'tools')
-                WHEN category = 'infrastructure' THEN (SELECT id FROM skill_categories WHERE slug = 'infrastructure')
-                WHEN category = 'learning' THEN (SELECT id FROM skill_categories WHERE slug = 'learning')
-                WHEN category = 'interpersonal' THEN (SELECT id FROM skill_categories WHERE slug = 'interpersonal')
-                ELSE (SELECT id FROM skill_categories WHERE slug = 'web')  -- Default fallback
-            END,
-            icon_name = 'Code',  -- Default icon
-            active = activa
-    """))
+    # Migrate existing data only if old columns exist
+    inspector = sa.inspect(connection)
+    skills_columns = [col['name'] for col in inspector.get_columns('skills')]
+    
+    if 'name' in skills_columns and 'category' in skills_columns and 'activa' in skills_columns:
+        # This is an existing database with old schema
+        connection.execute(sa.text("""
+            UPDATE skills SET 
+                name_en = name,
+                name_es = name,
+                category_id = CASE 
+                    WHEN category = 'web_development' THEN (SELECT id FROM skill_categories WHERE slug = 'web')
+                    WHEN category = 'tools' THEN (SELECT id FROM skill_categories WHERE slug = 'tools')
+                    WHEN category = 'infrastructure' THEN (SELECT id FROM skill_categories WHERE slug = 'infrastructure')
+                    WHEN category = 'learning' THEN (SELECT id FROM skill_categories WHERE slug = 'learning')
+                    WHEN category = 'interpersonal' THEN (SELECT id FROM skill_categories WHERE slug = 'interpersonal')
+                    ELSE (SELECT id FROM skill_categories WHERE slug = 'web')  -- Default fallback
+                END,
+                icon_name = 'Code',  -- Default icon
+                active = activa
+        """))
+    else:
+        # This is a fresh database, set default values
+        connection.execute(sa.text("""
+            UPDATE skills SET 
+                name_en = COALESCE(name_en, 'Default Skill'),
+                name_es = COALESCE(name_es, 'Habilidad por Defecto'),
+                category_id = (SELECT id FROM skill_categories WHERE slug = 'web'),
+                icon_name = 'Code',
+                active = true
+        """))
     
     # Now make the required columns non-nullable
     op.alter_column('skills', 'name_en', nullable=False)
@@ -76,9 +91,14 @@ def upgrade() -> None:
     op.alter_column('skills', 'icon_name', nullable=False)
     
     op.create_foreign_key(None, 'skills', 'skill_categories', ['category_id'], ['id'])
-    op.drop_column('skills', 'name')
-    op.drop_column('skills', 'activa')
-    op.drop_column('skills', 'category')
+    
+    # Drop old columns only if they exist
+    if 'name' in skills_columns:
+        op.drop_column('skills', 'name')
+    if 'activa' in skills_columns:
+        op.drop_column('skills', 'activa')
+    if 'category' in skills_columns:
+        op.drop_column('skills', 'category')
     # ### end Alembic commands ###
 
 
