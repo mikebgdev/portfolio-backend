@@ -1,5 +1,5 @@
 """
-Caching utilities for Portfolio Backend API.
+Memory-based caching utilities for Portfolio Backend API.
 """
 import json
 import hashlib
@@ -12,52 +12,11 @@ from app.utils.logging import get_logger
 
 logger = get_logger("portfolio.cache")
 
-# Optional Redis support - graceful fallback to memory cache
-redis = None
-try:
-    import redis.asyncio as redis
-    logger.info("Redis asyncio support available")
-except ImportError:
-    try:
-        import redis as redis_sync
-        logger.info("Using sync Redis with async wrapper")
-        
-        # Create a simple async wrapper for sync redis
-        class AsyncRedisWrapper:
-            def __init__(self, sync_client):
-                self.client = sync_client
-            
-            async def ping(self):
-                return self.client.ping()
-            
-            async def get(self, key):
-                return self.client.get(key)
-            
-            async def setex(self, key, ttl, value):
-                return self.client.setex(key, ttl, value)
-            
-            async def delete(self, *keys):
-                return self.client.delete(*keys)
-            
-            async def keys(self, pattern):
-                return self.client.keys(pattern)
-            
-            @classmethod
-            def from_url(cls, url, **kwargs):
-                sync_client = redis_sync.from_url(url, **kwargs)
-                return cls(sync_client)
-        
-        redis = AsyncRedisWrapper
-    except ImportError:
-        logger.warning("Redis not available, using memory cache only")
-        redis = None
-
 
 class CacheManager:
-    """Centralized cache management using Redis or in-memory fallback."""
+    """Centralized in-memory cache management."""
     
     def __init__(self):
-        self.redis_client: Optional[redis.Redis] = None
         self.memory_cache: Dict[str, Dict[str, Any]] = {}
         self.cache_stats = {
             'hits': 0,
@@ -65,49 +24,21 @@ class CacheManager:
             'sets': 0,
             'deletes': 0
         }
-        self.connected_to_redis = False
     
-    async def connect(self, redis_url: Optional[str] = None):
-        """Connect to Redis cache."""
-        if not redis_url:
-            redis_url = getattr(settings, 'redis_url', None)
-        
-        if redis_url:
-            try:
-                if hasattr(redis, 'from_url'):
-                    self.redis_client = redis.from_url(redis_url, decode_responses=True)
-                    # Test connection
-                    await self.redis_client.ping()
-                    self.connected_to_redis = True
-                    logger.info("Connected to Redis cache")
-                else:
-                    # Fallback for older redis versions
-                    logger.info("Redis async not available, using memory cache")
-                    self.connected_to_redis = False
-            except Exception as e:
-                logger.warning(f"Failed to connect to Redis: {str(e)}. Using memory cache fallback.")
-                self.redis_client = None
-                self.connected_to_redis = False
-        else:
-            logger.info("No Redis URL provided, using memory cache")
+    async def connect(self, *args, **kwargs):
+        """Initialize cache (compatibility method)."""
+        logger.info("Using in-memory cache")
     
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         try:
-            if self.redis_client and self.connected_to_redis:
-                value = await self.redis_client.get(key)
-                if value is not None:
-                    self.cache_stats['hits'] += 1
-                    return json.loads(value)
-            else:
-                # Memory cache fallback
-                cache_entry = self.memory_cache.get(key)
-                if cache_entry and cache_entry['expires_at'] > datetime.now():
-                    self.cache_stats['hits'] += 1
-                    return cache_entry['value']
-                elif cache_entry:
-                    # Expired entry, remove it
-                    del self.memory_cache[key]
+            cache_entry = self.memory_cache.get(key)
+            if cache_entry and cache_entry['expires_at'] > datetime.now():
+                self.cache_stats['hits'] += 1
+                return cache_entry['value']
+            elif cache_entry:
+                # Expired entry, remove it
+                del self.memory_cache[key]
             
             self.cache_stats['misses'] += 1
             return None
@@ -120,18 +51,13 @@ class CacheManager:
     async def set(self, key: str, value: Any, ttl: int = 300):
         """Set value in cache with TTL (Time To Live) in seconds."""
         try:
-            if self.redis_client and self.connected_to_redis:
-                serialized_value = json.dumps(value, default=str)
-                await self.redis_client.setex(key, ttl, serialized_value)
-            else:
-                # Memory cache fallback
-                expires_at = datetime.now() + timedelta(seconds=ttl)
-                self.memory_cache[key] = {
-                    'value': value,
-                    'expires_at': expires_at
-                }
-                # Clean expired entries periodically
-                await self._clean_expired_memory_cache()
+            expires_at = datetime.now() + timedelta(seconds=ttl)
+            self.memory_cache[key] = {
+                'value': value,
+                'expires_at': expires_at
+            }
+            # Clean expired entries periodically
+            await self._clean_expired_memory_cache()
             
             self.cache_stats['sets'] += 1
             
@@ -141,11 +67,7 @@ class CacheManager:
     async def delete(self, key: str):
         """Delete key from cache."""
         try:
-            if self.redis_client and self.connected_to_redis:
-                await self.redis_client.delete(key)
-            else:
-                self.memory_cache.pop(key, None)
-            
+            self.memory_cache.pop(key, None)
             self.cache_stats['deletes'] += 1
             
         except Exception as e:
@@ -154,16 +76,10 @@ class CacheManager:
     async def clear_pattern(self, pattern: str):
         """Clear all keys matching a pattern."""
         try:
-            if self.redis_client and self.connected_to_redis:
-                keys = await self.redis_client.keys(pattern)
-                if keys:
-                    await self.redis_client.delete(*keys)
-            else:
-                # Memory cache pattern matching
-                keys_to_delete = [key for key in self.memory_cache.keys() 
-                                if self._matches_pattern(key, pattern)]
-                for key in keys_to_delete:
-                    del self.memory_cache[key]
+            keys_to_delete = [key for key in self.memory_cache.keys() 
+                            if self._matches_pattern(key, pattern)]
+            for key in keys_to_delete:
+                del self.memory_cache[key]
             
             logger.info(f"Cleared cache pattern: {pattern}")
             
@@ -192,11 +108,12 @@ class CacheManager:
         hit_rate = (self.cache_stats['hits'] / total_requests * 100) if total_requests > 0 else 0
         
         return {
-            'backend': 'redis' if self.connected_to_redis else 'memory',
-            'connected': self.connected_to_redis,
+            'backend': 'memory',
+            'connected': True,
             'stats': self.cache_stats,
             'hit_rate_percent': round(hit_rate, 2),
-            'memory_cache_size': len(self.memory_cache) if not self.connected_to_redis else None
+            'total_requests': total_requests,
+            'memory_cache_size': len(self.memory_cache)
         }
 
 
@@ -304,8 +221,8 @@ async def warm_cache():
     """Warm up cache with frequently accessed data."""
     try:
         from app.database import SessionLocal
-        from app.services.content import (
-            about_service, skill_service, project_service,
+        from app.services import (
+            about_service, skills_service, projects_service,
             experience_service, education_service, contact_service
         )
         
@@ -316,11 +233,11 @@ async def warm_cache():
         
         for lang in languages:
             # Cache skills
-            skills = skill_service.get_skills(db)
+            skills = skills_service.get_skills(db)
             await ContentCache.cache_content_list("skills", lang, skills, ttl=1800)  # 30 minutes
             
             # Cache projects
-            projects = project_service.get_projects(db)
+            projects = projects_service.get_projects(db)
             await ContentCache.cache_content_list("projects", lang, projects, ttl=1800)
             
             # Cache experiences

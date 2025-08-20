@@ -32,8 +32,7 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 100
     enable_rate_limiting: bool = True
     
-    # Cache Settings
-    redis_url: Optional[str] = None  # Redis connection URL (optional)
+    # Cache Settings (memory-based)
     cache_ttl_default: int = 300  # Default cache TTL in seconds (5 minutes)
     cache_ttl_content: int = 600  # Content cache TTL (10 minutes)
     cache_ttl_static: int = 3600  # Static content cache TTL (1 hour)

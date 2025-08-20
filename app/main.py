@@ -150,7 +150,7 @@ async def startup_event():
     create_default_admin()
     
     # Initialize cache connection
-    await cache_manager.connect(settings.redis_url)
+    await cache_manager.connect()
     app_logger.info("Cache system initialized")
     
     # Start system metrics collection
