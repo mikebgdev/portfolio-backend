@@ -67,22 +67,34 @@ def upgrade() -> None:
         op.drop_column('about', 'extra_content_es')
     if 'birth_year' in about_columns:
         op.drop_column('about', 'birth_year')
-    op.alter_column('education', 'activo',
-               existing_type=sa.BOOLEAN(),
-               nullable=True,
-               existing_server_default=sa.text('true'))
-    op.alter_column('experience', 'activo',
-               existing_type=sa.BOOLEAN(),
-               nullable=True,
-               existing_server_default=sa.text('true'))
-    op.alter_column('projects', 'activa',
-               existing_type=sa.BOOLEAN(),
-               nullable=True,
-               existing_server_default=sa.text('true'))
-    op.alter_column('skills', 'activa',
-               existing_type=sa.BOOLEAN(),
-               nullable=True,
-               existing_server_default=sa.text('true'))
+    # Handle alter column operations for existing tables/columns only
+    education_columns = [col['name'] for col in inspector.get_columns('education')]
+    if 'activo' in education_columns:
+        op.alter_column('education', 'activo',
+                   existing_type=sa.BOOLEAN(),
+                   nullable=True,
+                   existing_server_default=sa.text('true'))
+    
+    experience_columns = [col['name'] for col in inspector.get_columns('experience')]
+    if 'activo' in experience_columns:
+        op.alter_column('experience', 'activo',
+                   existing_type=sa.BOOLEAN(),
+                   nullable=True,
+                   existing_server_default=sa.text('true'))
+    
+    projects_columns = [col['name'] for col in inspector.get_columns('projects')]
+    if 'activa' in projects_columns:
+        op.alter_column('projects', 'activa',
+                   existing_type=sa.BOOLEAN(),
+                   nullable=True,
+                   existing_server_default=sa.text('true'))
+    
+    skills_columns = [col['name'] for col in inspector.get_columns('skills')]
+    if 'activa' in skills_columns:
+        op.alter_column('skills', 'activa',
+                   existing_type=sa.BOOLEAN(),
+                   nullable=True,
+                   existing_server_default=sa.text('true'))
     # ### end Alembic commands ###
 
 
