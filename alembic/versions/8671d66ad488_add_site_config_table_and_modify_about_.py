@@ -30,16 +30,44 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_site_config_id'), 'site_config', ['id'], unique=False)
     op.create_index(op.f('ix_site_config_site_title'), 'site_config', ['site_title'], unique=False)
-    op.drop_index('idx_content_field', table_name='content_translations')
-    op.drop_index('idx_content_language', table_name='content_translations')
-    op.drop_index('idx_language_type', table_name='content_translations')
-    op.drop_index('ix_content_translations_id', table_name='content_translations')
-    op.drop_table('content_translations')
+    # Drop content_translations table and indexes if they exist
+    try:
+        op.drop_index('idx_content_field', table_name='content_translations')
+    except:
+        pass
+    try:
+        op.drop_index('idx_content_language', table_name='content_translations')
+    except:
+        pass
+    try:
+        op.drop_index('idx_language_type', table_name='content_translations')
+    except:
+        pass
+    try:
+        op.drop_index('ix_content_translations_id', table_name='content_translations')
+    except:
+        pass
+    try:
+        op.drop_table('content_translations')
+    except:
+        pass
     op.add_column('about', sa.Column('birth_date', sa.Date(), nullable=True))
-    op.drop_column('about', 'birth_month')
-    op.drop_column('about', 'extra_content_en')
-    op.drop_column('about', 'extra_content_es')
-    op.drop_column('about', 'birth_year')
+    try:
+        op.drop_column('about', 'birth_month')
+    except:
+        pass
+    try:
+        op.drop_column('about', 'extra_content_en')
+    except:
+        pass
+    try:
+        op.drop_column('about', 'extra_content_es')
+    except:
+        pass
+    try:
+        op.drop_column('about', 'birth_year')
+    except:
+        pass
     op.alter_column('education', 'activo',
                existing_type=sa.BOOLEAN(),
                nullable=True,
