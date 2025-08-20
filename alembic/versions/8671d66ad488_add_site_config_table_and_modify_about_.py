@@ -30,44 +30,43 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_site_config_id'), 'site_config', ['id'], unique=False)
     op.create_index(op.f('ix_site_config_site_title'), 'site_config', ['site_title'], unique=False)
-    # Drop content_translations table and indexes if they exist
-    try:
-        op.drop_index('idx_content_field', table_name='content_translations')
-    except:
-        pass
-    try:
-        op.drop_index('idx_content_language', table_name='content_translations')
-    except:
-        pass
-    try:
-        op.drop_index('idx_language_type', table_name='content_translations')
-    except:
-        pass
-    try:
-        op.drop_index('ix_content_translations_id', table_name='content_translations')
-    except:
-        pass
-    try:
+    # Check if content_translations table exists before dropping
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    
+    if 'content_translations' in inspector.get_table_names():
+        # Get existing indexes
+        indexes = inspector.get_indexes('content_translations')
+        index_names = [idx['name'] for idx in indexes]
+        
+        # Drop indexes if they exist
+        if 'idx_content_field' in index_names:
+            op.drop_index('idx_content_field', table_name='content_translations')
+        if 'idx_content_language' in index_names:
+            op.drop_index('idx_content_language', table_name='content_translations')
+        if 'idx_language_type' in index_names:
+            op.drop_index('idx_language_type', table_name='content_translations')
+        if 'ix_content_translations_id' in index_names:
+            op.drop_index('ix_content_translations_id', table_name='content_translations')
+        
+        # Drop the table
         op.drop_table('content_translations')
-    except:
-        pass
-    op.add_column('about', sa.Column('birth_date', sa.Date(), nullable=True))
-    try:
+    # Handle about table column changes
+    about_columns = [col['name'] for col in inspector.get_columns('about')]
+    
+    # Add birth_date if it doesn't exist
+    if 'birth_date' not in about_columns:
+        op.add_column('about', sa.Column('birth_date', sa.Date(), nullable=True))
+    
+    # Drop columns if they exist
+    if 'birth_month' in about_columns:
         op.drop_column('about', 'birth_month')
-    except:
-        pass
-    try:
+    if 'extra_content_en' in about_columns:
         op.drop_column('about', 'extra_content_en')
-    except:
-        pass
-    try:
+    if 'extra_content_es' in about_columns:
         op.drop_column('about', 'extra_content_es')
-    except:
-        pass
-    try:
+    if 'birth_year' in about_columns:
         op.drop_column('about', 'birth_year')
-    except:
-        pass
     op.alter_column('education', 'activo',
                existing_type=sa.BOOLEAN(),
                nullable=True,
