@@ -1,7 +1,8 @@
 """Experience service for handling work experience operations."""
 from sqlalchemy.orm import Session
 from app.models.experience import Experience
-from typing import List, Optional
+from app.exceptions import ContentNotFoundError
+from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,15 +12,21 @@ class ExperienceService:
     """Service for managing work experience."""
     
     def get_experiences(self, db: Session) -> List[Experience]:
-        """Get all experiences ordered by display order and start date (most recent first)."""
+        """Get all experiences ordered by ongoing first (end_date=null), then most recent first."""
+        from sqlalchemy import case
         return db.query(Experience).order_by(
-            Experience.display_order, 
-            Experience.start_date.desc()
+            Experience.display_order,
+            case((Experience.end_date.is_(None), 0), else_=1),  # Ongoing first (null = 0, others = 1)
+            Experience.end_date.desc(),         # Then by most recent end date
+            Experience.start_date.desc()        # Finally by most recent start date
         ).all()
 
-    def get_experience_by_id(self, db: Session, experience_id: int) -> Optional[Experience]:
+    def get_experience_by_id(self, db: Session, experience_id: int) -> Experience:
         """Get experience by ID."""
-        return db.query(Experience).filter(Experience.id == experience_id).first()
+        experience = db.query(Experience).filter(Experience.id == experience_id).first()
+        if not experience:
+            raise ContentNotFoundError("experience", experience_id)
+        return experience
 
 
 # Global service instance

@@ -1,7 +1,8 @@
 """Projects service for handling project operations."""
 from sqlalchemy.orm import Session
 from app.models.projects import Project
-from typing import List, Optional
+from app.exceptions import ContentNotFoundError
+from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,9 +18,12 @@ class ProjectService:
             Project.created_at.desc()
         ).all()
 
-    def get_project_by_id(self, db: Session, project_id: int) -> Optional[Project]:
+    def get_project_by_id(self, db: Session, project_id: int) -> Project:
         """Get project by ID."""
-        return db.query(Project).filter(Project.id == project_id).first()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise ContentNotFoundError("project", project_id)
+        return project
 
 
 # Global service instance

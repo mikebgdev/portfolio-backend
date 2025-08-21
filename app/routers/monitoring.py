@@ -1,7 +1,7 @@
 """
 Monitoring and metrics endpoints for Portfolio Backend API.
 """
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi import APIRouter, Query
 from typing import Optional
 from app.utils.enhanced_monitoring import metrics_collector, enhanced_health_checker
 from app.utils.monitoring import health_checker, metrics_collector as basic_metrics

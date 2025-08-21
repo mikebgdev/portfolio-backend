@@ -31,8 +31,7 @@ psutil==5.9.6
 sqladmin==0.13.0
 itsdangerous==2.1.2
 
-# Caching and Performance
-redis==4.6.0
+# Performance
 slowapi==0.1.9
 
 # Development and Code Quality

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import List, Optional
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -17,19 +17,8 @@ class Settings(BaseSettings):
     # Authentication (only for SQLAdmin)
     secret_key: str
     
-    # Google OAuth (optional for CI/testing)
-    google_client_id: Optional[str] = None
-    google_client_secret: Optional[str] = None
-    
     # Application Settings
     debug: bool = False
-    # Always allow all origins for development - more permissive approach
-    cors_origins: List[str] = ["*"]
-    
-    @property
-    def get_cors_origins(self) -> List[str]:
-        # Always return permissive CORS for development
-        return ["*"]
     
     # Multilingual Settings
     supported_languages: dict = {
@@ -43,13 +32,42 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 100
     enable_rate_limiting: bool = True
     
-    # Cache Settings
-    redis_url: Optional[str] = None  # Redis connection URL (optional)
+    # CORS Settings
+    cors_origins: list = ["*"]  # Development defaults - permissive
+    cors_allow_credentials: bool = True
+    
+    @property
+    def effective_cors_origins(self) -> list:
+        """Get CORS origins based on environment"""
+        if self.is_production:
+            # In production, use specific origins for security
+            if self.cors_origins == ["*"]:
+                # If still using wildcard in production, use a secure default
+                return ["https://yourdomain.com"]
+            return self.cors_origins
+        else:
+            # In development, be permissive
+            return self.cors_origins
+    
+    # Environment
+    environment: str = "development"  # development, production
+    
+    # Cache Settings (memory-based)
     cache_ttl_default: int = 300  # Default cache TTL in seconds (5 minutes)
     cache_ttl_content: int = 600  # Content cache TTL (10 minutes)
     cache_ttl_static: int = 3600  # Static content cache TTL (1 hour)
     enable_http_cache: bool = True
     enable_compression: bool = True
+    
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production environment"""
+        return self.environment.lower() == "production"
+    
+    @property
+    def should_enable_cache(self) -> bool:
+        """Enable cache only in production"""
+        return self.is_production and self.enable_http_cache
     
     class Config:
         env_file = ".env"

@@ -5,6 +5,7 @@ from app.deps.auth import get_db
 from app.schemas.contact import ContactResponse
 from app.services.contact import contact_service
 from app.config import settings
+from app.utils.validation import validate_language
 
 router = APIRouter(prefix="/contact", tags=["contact"])
 
@@ -15,8 +16,7 @@ async def get_contact(
 ):
     """Get contact section content with optional language parameter."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     # Get the first contact record (assuming single contact record)
     contact = contact_service.get_contact(db)

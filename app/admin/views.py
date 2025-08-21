@@ -66,6 +66,19 @@ class SiteConfigAdmin(ModelView, model=SiteConfig):
         "brand_name": "Nombre de la marca",
         "meta_description": "Meta descripción",
         "meta_keywords": "Meta palabras clave",
+        # Open Graph fields
+        "og_title": "Título OG",
+        "og_description": "Descripción OG",
+        "og_image": "Imagen OG (URL)",
+        "og_url": "URL Canónica",
+        "og_type": "Tipo OG",
+        # Twitter Card fields
+        "twitter_card": "Tipo de Twitter Card",
+        "twitter_site": "Twitter del Sitio (@username)",
+        "twitter_creator": "Twitter del Creador (@username)",
+        "twitter_title": "Título Twitter",
+        "twitter_description": "Descripción Twitter",
+        "twitter_image": "Imagen Twitter (URL)",
         "created_at": "Fecha de creación",
         "updated_at": "Última modificación"
     }
@@ -276,10 +289,6 @@ class EducationAdmin(ModelView, model=Education):
         "institution": "Institución",
         "degree_en": "Título (Inglés)",
         "degree_es": "Título (Español)",
-        "field_of_study_en": "Campo de estudio (Inglés)",
-        "field_of_study_es": "Campo de estudio (Español)",
-        "description_en": "Descripción (Inglés)",
-        "description_es": "Descripción (Español)",
         "start_date": "Fecha de inicio",
         "end_date": "Fecha de fin",
         "location": "Ubicación",

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.deps.auth import get_db
@@ -9,6 +9,7 @@ from app.schemas.skills import (
 )
 from app.services.skills import skill_service, skill_category_service
 from app.config import settings
+from app.utils.validation import validate_language
 
 router = APIRouter(prefix="/skills", tags=["skills"])
 
@@ -19,8 +20,7 @@ async def get_skills_grouped(
 ):
     """Get skills grouped by categories with multilingual support."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     # Get grouped skills from service
     return await skill_service.get_skills_grouped(db, lang)
@@ -33,8 +33,7 @@ async def get_categories(
 ):
     """Get all skill categories."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     categories = skill_category_service.get_categories(db)
     
@@ -55,8 +54,7 @@ async def get_skills_list(
 ):
     """Get all skills as a flat list, optionally filtered by category."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     # Get skills from service
     skills = skill_service.get_skills(db, category_id)
@@ -78,8 +76,7 @@ async def get_skill(
 ):
     """Get specific skill by ID."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
         
     # Service will raise ContentNotFoundError if skill doesn't exist
     skill = skill_service.get_skill_by_id(db, skill_id)
