@@ -12,7 +12,7 @@ class AboutBase(BaseModel):
     birth_date: Optional[date] = Field(None, description="Birth date")
     email: str = Field(..., description="Email address")
     location: str = Field(..., min_length=1, max_length=200, description="Location")
-    photo_url: Optional[str] = Field(None, description="Photo URL")
+    photo_file: Optional[str] = Field(None, description="Photo file path")
     
     # Multilingual fields
     bio_en: str = Field(..., min_length=10, max_length=5000, description="Biography in English")
@@ -31,10 +31,10 @@ class AboutBase(BaseModel):
             raise ValueError('Invalid email format')
         return v.lower()
 
-    @validator('photo_url')
-    def validate_photo_url(cls, v):
-        if v and not v.startswith(('http://', 'https://')):
-            raise ValueError('Photo URL must start with http:// or https://')
+    @validator('photo_file')
+    def validate_photo_file(cls, v):
+        if v and not v.startswith('/uploads/'):
+            raise ValueError('Photo file must be an uploaded file path')
         return v
 
     @validator('name', 'last_name', 'location', 'nationality_en', 'nationality_es')

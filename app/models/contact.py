@@ -28,7 +28,6 @@ class Contact(Base):
     contact_message_es = Column(Text, nullable=True)
     
     # CV/Resume
-    cv_file_url = Column(String(500), nullable=True)  # Keep as backup
     cv_file = Column(String(500), nullable=True)  # File upload path
     
     # Timestamps

@@ -14,17 +14,23 @@ class ProjectBase(BaseModel):
     description_es: Optional[str] = Field(None, max_length=2000, description="Project description in Spanish")
     
     # Non-translatable fields
-    image_url: Optional[str] = Field(None, description="Project image URL")
+    image_file: Optional[str] = Field(None, description="Project image file path")
     technologies: str = Field(..., min_length=1, max_length=500, description="Technologies used (comma-separated)")
     source_url: Optional[str] = Field(None, description="Source code URL")
     demo_url: Optional[str] = Field(None, description="Live demo URL")
     display_order: Optional[int] = Field(0, ge=0, le=1000, description="Display order")
     activa: Optional[bool] = Field(True, description="Whether project is active")
 
-    @validator('image_url', 'source_url', 'demo_url')
+    @validator('source_url', 'demo_url')
     def validate_urls(cls, v):
         if v and not v.startswith(('http://', 'https://')):
             raise ValueError('URL must start with http:// or https://')
+        return v
+    
+    @validator('image_file')
+    def validate_image_file(cls, v):
+        if v and not v.startswith('/uploads/'):
+            raise ValueError('Image file must be an uploaded file path')
         return v
 
     @validator('technologies')

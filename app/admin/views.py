@@ -111,7 +111,6 @@ class AboutAdmin(ModelView, model=About):
         "birth_date": "Fecha de nacimiento",
         "email": "Correo electrónico",
         "location": "Ubicación",
-        "photo_url": "URL de la foto",
         "photo_file": "Archivo de foto",
         "bio_en": "Biografía (Inglés)",
         "bio_es": "Biografía (Español)",
@@ -156,7 +155,6 @@ class ContactAdmin(ModelView, model=Contact):
         "contact_form_enabled": "¿Formulario contacto activo?",
         "contact_message_en": "Mensaje de contacto (Inglés)",
         "contact_message_es": "Mensaje de contacto (Español)",
-        "cv_file_url": "URL del archivo CV",
         "cv_file": "Archivo CV",
         "created_at": "Fecha de creación",
         "updated_at": "Última modificación"
@@ -246,7 +244,6 @@ class ProjectAdmin(ModelView, model=Project):
         "title_es": "Título (Español)",
         "description_en": "Descripción (Inglés)",
         "description_es": "Descripción (Español)",
-        "image_url": "URL de la imagen",
         "image_file": "Archivo de imagen",
         "technologies": "Tecnologías utilizadas",
         "source_url": "URL código fuente",

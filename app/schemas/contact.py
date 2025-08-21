@@ -19,7 +19,7 @@ class ContactBase(BaseModel):
     contact_message_es: Optional[str] = Field(None, description="Contact message in Spanish")
     
     # CV file
-    cv_file_url: Optional[str] = Field(None, description="CV file URL")
+    cv_file: Optional[str] = Field(None, description="CV file path")
 
 
 class ContactResponse(ContactBase):
