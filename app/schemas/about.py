@@ -1,6 +1,6 @@
 """About schemas for API requests and responses."""
 from pydantic import BaseModel, validator, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 import re
 
@@ -61,6 +61,9 @@ class AboutResponse(AboutBase):
     updated_at: Optional[datetime] = None
     language: Optional[str] = 'en'
     available_languages: List[str] = ['en', 'es']
+    
+    # File data (populated by service layer)
+    photo_data: Optional[Dict[str, Any]] = Field(None, description="Photo file as Base64 data URL")
 
     class Config:
         from_attributes = True

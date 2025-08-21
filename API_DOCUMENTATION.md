@@ -30,22 +30,34 @@ All content endpoints support the `lang` query parameter:
 
 If an unsupported language is provided, the API defaults to English.
 
-## File Uploads and Static Files
+## File Uploads and Base64 Encoding
 
-The API supports file uploads through the admin panel and serves them as static files:
+The API supports file uploads through the admin panel and returns them as Base64-encoded data URLs:
 
-- **Upload Path**: Files are uploaded to `/uploads/` directory
+- **Upload Path**: Files are uploaded to `/uploads/` directory on the server
 - **File Structure**: 
   - Images: `/uploads/images/` (jpg, png, webp, gif)
   - Documents: `/uploads/files/` (pdf, doc, docx, txt)
 - **Unique Filenames**: All uploads get UUID-based unique names to prevent conflicts
-- **Access**: Files are accessible at `http://your-domain/uploads/path/filename.ext`
-- **API Fields**: File paths are returned in API responses (e.g., `photo_file`, `cv_file`, `image_file`)
+- **API Response**: Files are returned as Base64 data URLs with MIME type information
+- **Size Limit**: Files larger than 10MB are not encoded to Base64 (returns null)
 
-**Example File URLs:**
-- Profile photo: `http://your-domain/uploads/images/abc123-def456.jpg`
-- CV document: `http://your-domain/uploads/files/xyz789-cv.pdf`
-- Project image: `http://your-domain/uploads/images/project123.png`
+**File Data Structure:**
+```json
+{
+  "photo_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 12345,
+    "filename": "abc123-photo.jpg"
+  }
+}
+```
+
+**Usage in Frontend:**
+- **Images**: Use `data` field directly in `<img src="..." />` tags
+- **Documents**: Use `data` field for download links or PDF viewers
+- **MIME Detection**: Automatic based on file extension
 
 ## Date Format and Ordering
 
@@ -123,6 +135,12 @@ Get personal information and bio.
   "email": "mike@mikebgdev.com",
   "location": "Anna, Valencia",
   "photo_file": "/uploads/images/abc123-profile.jpg",
+  "photo_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 15420,
+    "filename": "abc123-profile.jpg"
+  },
   "bio_en": "I'm a Software Developer...",
   "bio_es": "Soy Software Developer...",
   "hero_description_en": "Building scalable software...",
@@ -194,6 +212,12 @@ Get all projects.
     "description_en": "FastAPI backend for portfolio website",
     "description_es": "Backend FastAPI para sitio web portfolio",
     "image_file": "/uploads/images/def456-project.jpg",
+    "image_data": {
+      "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+      "mime_type": "image/jpeg", 
+      "size": 28650,
+      "filename": "def456-project.jpg"
+    },
     "technologies": ["FastAPI", "Python", "PostgreSQL"],
     "source_url": "https://github.com/user/project",
     "demo_url": "https://project-demo.com",
@@ -322,6 +346,12 @@ Get contact information.
   "contact_message_en": "Feel free to contact me",
   "contact_message_es": "No dudes en contactarme",
   "cv_file": "/uploads/files/ghi789-cv.pdf",
+  "cv_data": {
+    "data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8...",
+    "mime_type": "application/pdf",
+    "size": 245678,
+    "filename": "ghi789-cv.pdf"
+  },
   "created_at": "2025-08-11T20:31:37.777206Z",
   "updated_at": "2025-08-20T21:46:23.367523Z",
   "language": "en"

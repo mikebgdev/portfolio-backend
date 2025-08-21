@@ -1,6 +1,6 @@
 """Contact schemas for API requests and responses."""
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
@@ -29,6 +29,9 @@ class ContactResponse(ContactBase):
     updated_at: Optional[datetime] = None
     language: Optional[str] = 'en'
     available_languages: List[str] = ['en', 'es']
+    
+    # File data (populated by service layer)
+    cv_data: Optional[Dict[str, Any]] = Field(None, description="CV file as Base64 data URL")
 
     class Config:
         from_attributes = True

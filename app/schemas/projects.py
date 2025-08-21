@@ -1,6 +1,6 @@
 """Projects schemas for API requests and responses."""
 from pydantic import BaseModel, validator, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 import re
 
@@ -71,6 +71,9 @@ class ProjectResponse(ProjectBase):
     created_at: datetime
     language: Optional[str] = 'en'
     available_languages: List[str] = ['en', 'es']
+    
+    # File data (populated by service layer)
+    image_data: Optional[Dict[str, Any]] = Field(None, description="Project image as Base64 data URL")
 
     class Config:
         from_attributes = True
