@@ -12,6 +12,7 @@ Portfolio Backend API is a robust, scalable FastAPI-based REST API designed for 
 ## Features
 
 - ✅ **Multilingual Support**: Content available in English and Spanish
+- ✅ **File Uploads**: Support for images and document uploads via admin panel
 - ✅ **Caching**: High-performance in-memory caching with TTL
 - ✅ **Security**: Rate limiting, input sanitization, security headers
 - ✅ **CORS**: Cross-Origin Resource Sharing enabled
@@ -28,6 +29,23 @@ All content endpoints support the `lang` query parameter:
 - `lang=es` (Spanish)
 
 If an unsupported language is provided, the API defaults to English.
+
+## File Uploads and Static Files
+
+The API supports file uploads through the admin panel and serves them as static files:
+
+- **Upload Path**: Files are uploaded to `/uploads/` directory
+- **File Structure**: 
+  - Images: `/uploads/images/` (jpg, png, webp, gif)
+  - Documents: `/uploads/files/` (pdf, doc, docx, txt)
+- **Unique Filenames**: All uploads get UUID-based unique names to prevent conflicts
+- **Access**: Files are accessible at `http://your-domain/uploads/path/filename.ext`
+- **API Fields**: File paths are returned in API responses (e.g., `photo_file`, `cv_file`, `image_file`)
+
+**Example File URLs:**
+- Profile photo: `http://your-domain/uploads/images/abc123-def456.jpg`
+- CV document: `http://your-domain/uploads/files/xyz789-cv.pdf`
+- Project image: `http://your-domain/uploads/images/project123.png`
 
 ## Date Format and Ordering
 
@@ -104,7 +122,7 @@ Get personal information and bio.
   "birth_date": "1994-04-07",
   "email": "mike@mikebgdev.com",
   "location": "Anna, Valencia",
-  "photo_url": "https://example.com/profile.webp",
+  "photo_file": "/uploads/images/abc123-profile.jpg",
   "bio_en": "I'm a Software Developer...",
   "bio_es": "Soy Software Developer...",
   "hero_description_en": "Building scalable software...",
@@ -175,7 +193,7 @@ Get all projects.
     "title_es": "Backend Portfolio",
     "description_en": "FastAPI backend for portfolio website",
     "description_es": "Backend FastAPI para sitio web portfolio",
-    "image_url": "https://example.com/project.jpg",
+    "image_file": "/uploads/images/def456-project.jpg",
     "technologies": ["FastAPI", "Python", "PostgreSQL"],
     "source_url": "https://github.com/user/project",
     "demo_url": "https://project-demo.com",
@@ -303,7 +321,7 @@ Get contact information.
   "contact_form_enabled": true,
   "contact_message_en": "Feel free to contact me",
   "contact_message_es": "No dudes en contactarme",
-  "cv_file_url": "https://example.com/cv.pdf",
+  "cv_file": "/uploads/files/ghi789-cv.pdf",
   "created_at": "2025-08-11T20:31:37.777206Z",
   "updated_at": "2025-08-20T21:46:23.367523Z",
   "language": "en"
