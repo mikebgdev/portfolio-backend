@@ -1,5 +1,5 @@
 """Education schemas for API requests and responses."""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional, List
 from datetime import datetime
 
@@ -31,6 +31,13 @@ class EducationResponse(EducationBase):
 
     class Config:
         from_attributes = True
+    
+    @field_serializer('start_date', 'end_date')
+    def serialize_date(self, value: Optional[datetime]) -> Optional[str]:
+        """Serialize dates in YYYY/MM/DD format."""
+        if value is None:
+            return None
+        return value.strftime('%Y/%m/%d')
         
     @property
     def degree(self) -> str:

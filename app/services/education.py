@@ -12,10 +12,13 @@ class EducationService:
     """Service for managing education records."""
     
     def get_education_records(self, db: Session) -> List[Education]:
-        """Get all education records ordered by display order and start date (most recent first)."""
+        """Get all education records ordered by ongoing first (end_date=null), then most recent first."""
+        from sqlalchemy import case
         return db.query(Education).order_by(
-            Education.display_order, 
-            Education.start_date.desc()
+            Education.display_order,
+            case((Education.end_date.is_(None), 0), else_=1),  # Ongoing first (null = 0, others = 1)
+            Education.end_date.desc(),         # Then by most recent end date
+            Education.start_date.desc()        # Finally by most recent start date
         ).all()
 
     def get_education_by_id(self, db: Session, education_id: int) -> Education:

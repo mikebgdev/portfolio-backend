@@ -29,6 +29,14 @@ All content endpoints support the `lang` query parameter:
 
 If an unsupported language is provided, the API defaults to English.
 
+## Date Format and Ordering
+
+- **Date Format**: All dates are returned in `YYYY/MM/DD` format
+- **Sorting Logic**: Experience and Education records are sorted as follows:
+  1. **Ongoing records first** (end_date = null) - current jobs/studies
+  2. **Then by most recent end date** (reverse chronological order)
+  3. **Finally by most recent start date** (as secondary sort)
+
 ## Rate Limiting
 
 The API implements rate limiting to prevent abuse:
@@ -211,8 +219,8 @@ Get all work experiences.
     "position_es": "Desarrollador Backend",
     "description_en": "Developed REST APIs...",
     "description_es": "Desarrollé APIs REST...",
-    "start_date": "2022-01-01",
-    "end_date": "2023-12-31",
+    "start_date": "2022/01/01",
+    "end_date": "2023/12/31",
     "display_order": 1,
     "activo": true,
     "created_at": "2025-08-11T20:31:37.777206Z",
@@ -251,8 +259,8 @@ Get all education records.
     "location": "Valencia, Spain",
     "degree_en": "Computer Science Degree",
     "degree_es": "Grado en Informática",
-    "start_date": "2018-09-01",
-    "end_date": "2022-06-30",
+    "start_date": "2018/09/01",
+    "end_date": "2022/06/30",
     "display_order": 1,
     "activo": true,
     "created_at": "2025-08-11T20:31:37.777206Z",
