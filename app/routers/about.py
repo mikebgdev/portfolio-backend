@@ -5,6 +5,7 @@ from app.deps.auth import get_db
 from app.schemas.about import AboutResponse
 from app.services.about import about_service
 from app.config import settings
+from app.utils.validation import validate_language
 
 router = APIRouter(prefix="/about", tags=["about"])
 
@@ -15,8 +16,7 @@ async def get_about(
 ):
     """Get about section content with optional language parameter."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     # Get the first about record (assuming single about record)
     about = about_service.get_about(db)

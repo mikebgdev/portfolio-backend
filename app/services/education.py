@@ -1,7 +1,8 @@
 """Education service for handling education operations."""
 from sqlalchemy.orm import Session
 from app.models.education import Education
-from typing import List, Optional
+from app.exceptions import ContentNotFoundError
+from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,9 +18,12 @@ class EducationService:
             Education.start_date.desc()
         ).all()
 
-    def get_education_by_id(self, db: Session, education_id: int) -> Optional[Education]:
+    def get_education_by_id(self, db: Session, education_id: int) -> Education:
         """Get education record by ID."""
-        return db.query(Education).filter(Education.id == education_id).first()
+        education = db.query(Education).filter(Education.id == education_id).first()
+        if not education:
+            raise ContentNotFoundError("education", education_id)
+        return education
 
 
 # Global service instance

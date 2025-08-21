@@ -17,10 +17,6 @@ class Education(Base):
     # Multilingual degree information
     degree_en = Column(String(200), nullable=False)
     degree_es = Column(String(200), nullable=True)
-    field_of_study_en = Column(String(200), nullable=True)
-    field_of_study_es = Column(String(200), nullable=True)
-    description_en = Column(Text, nullable=True)
-    description_es = Column(Text, nullable=True)
     
     # Date range
     start_date = Column(DateTime, nullable=False)

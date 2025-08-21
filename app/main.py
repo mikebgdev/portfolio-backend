@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
 from app.config import settings
 
 # Import exception handlers
@@ -57,12 +56,12 @@ app = FastAPI(
     debug=settings.debug
 )
 
-# Configure CORS - Permissive for development
+# Configure CORS with configurable origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=settings.effective_cors_origins,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -75,21 +74,24 @@ app.add_middleware(RateLimitingMiddleware, requests_per_minute=settings.rate_lim
 app.add_middleware(InputSanitizationMiddleware)
 app.add_middleware(RequestSizeMiddleware, max_size=settings.max_upload_size)
 
-# Add performance middleware
+# Add performance middleware (cache before compression to avoid encoding issues)
+if settings.should_enable_cache:
+    app.add_middleware(CacheMiddleware, default_ttl=settings.cache_ttl_content)
+    app_logger.info("HTTP cache enabled for production environment")
+else:
+    app_logger.info(f"HTTP cache disabled for {settings.environment} environment")
+
 if settings.enable_compression:
     app.add_middleware(CompressionMiddleware, minimum_size=1000)
-if settings.enable_http_cache:
-    app.add_middleware(CacheMiddleware, default_ttl=settings.cache_ttl_content)
+    
 app.add_middleware(PerformanceMonitoringMiddleware, slow_request_threshold=1.0)
 
 # Add monitoring middleware
 app.add_middleware(MetricsMiddleware)
 app.add_middleware(DatabaseMetricsMiddleware)
 
-
 # Add request logging middleware
 app.add_middleware(RequestLoggingMiddleware)
-
 
 # Register exception handlers
 app.add_exception_handler(PortfolioBaseException, portfolio_exception_handler)
@@ -118,6 +120,7 @@ from starlette.requests import Request
 @app.get("/")
 async def root():
     return {"message": "Portfolio Backend API", "version": "1.0.0"}
+
 
 @app.get("/admin")
 async def admin_auth_check(request: Request):
@@ -157,9 +160,12 @@ async def startup_event():
     await system_metrics_collector.start_collection()
     app_logger.info("System metrics collection started")
     
-    # Warm up cache with frequently accessed data
-    await warm_cache()
-    app_logger.info("Cache warmed up")
+    # Warm up cache with frequently accessed data (only in production)
+    if settings.should_enable_cache:
+        await warm_cache()
+        app_logger.info("Cache warmed up")
+    else:
+        app_logger.info("Cache warming skipped for development environment")
 
 @app.on_event("shutdown")
 async def shutdown_event():

@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.deps.auth import get_db
 from app.schemas.education import EducationResponse
 from app.services.education import education_service
 from app.config import settings
+from app.utils.validation import validate_language
 
 router = APIRouter(prefix="/education", tags=["education"])
 
@@ -15,8 +16,7 @@ async def get_education_records(
 ):
     """Get all education records with multilingual support."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     education_records = education_service.get_education_records(db)
     
@@ -37,15 +37,10 @@ async def get_education(
 ):
     """Get specific education record by ID with multilingual support."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
         
+    # Service will raise ContentNotFoundError if education doesn't exist
     education = education_service.get_education_by_id(db, education_id)
-    if not education:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Education record not found"
-        )
     
     response = EducationResponse.model_validate(education)
     response.language = lang  # Set requested language for computed properties

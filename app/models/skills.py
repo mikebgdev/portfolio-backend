@@ -32,7 +32,10 @@ class SkillCategory(Base):
     
     def __str__(self):
         """String representation for admin interface."""
-        return f"{self.label_en} ({self.slug})"
+        try:
+            return f"{self.label_en} ({self.slug})"
+        except Exception:
+            return f"SkillCategory {self.id if hasattr(self, 'id') else 'Unknown'}"
 
 
 class Skill(Base):
@@ -63,4 +66,8 @@ class Skill(Base):
     
     def __str__(self):
         """String representation for admin interface."""
-        return f"{self.name_en} ({self.skill_category.label_en if self.skill_category else 'No category'})"
+        try:
+            category_label = self.skill_category.label_en if self.skill_category else 'No category'
+            return f"{self.name_en} ({category_label})"
+        except Exception:
+            return f"{self.name_en} (Category error)"

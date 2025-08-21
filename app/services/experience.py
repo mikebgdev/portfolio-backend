@@ -1,7 +1,8 @@
 """Experience service for handling work experience operations."""
 from sqlalchemy.orm import Session
 from app.models.experience import Experience
-from typing import List, Optional
+from app.exceptions import ContentNotFoundError
+from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,9 +18,12 @@ class ExperienceService:
             Experience.start_date.desc()
         ).all()
 
-    def get_experience_by_id(self, db: Session, experience_id: int) -> Optional[Experience]:
+    def get_experience_by_id(self, db: Session, experience_id: int) -> Experience:
         """Get experience by ID."""
-        return db.query(Experience).filter(Experience.id == experience_id).first()
+        experience = db.query(Experience).filter(Experience.id == experience_id).first()
+        if not experience:
+            raise ContentNotFoundError("experience", experience_id)
+        return experience
 
 
 # Global service instance

@@ -1,211 +1,255 @@
-# 🚀 Portfolio Backend
+# Portfolio Backend API
 
-[![CI Status](https://github.com/mikebgdev/portfolio-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/mikebgdev/portfolio-backend/actions/workflows/ci.yml)
-[![Security Status](https://github.com/mikebgdev/portfolio-backend/actions/workflows/security.yml/badge.svg)](https://github.com/mikebgdev/portfolio-backend/actions/workflows/security.yml)
-[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+A robust FastAPI-based REST API for personal portfolio websites with multilingual support, admin panel, and automatic environment-based caching.
 
-## 🌟 Overview
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)
 
-A **modern portfolio backend** built with FastAPI and PostgreSQL, centered around a powerful **admin panel** for easy content management. Perfect for developers who want a clean, simple API with a beautiful interface to manage their portfolio data.
+## ✨ Features
 
-### ✨ **Key Features**
-- 🎛️ **Beautiful Admin Panel**: SQLAdmin interface for easy content management
-- 🔓 **Public API**: GET endpoints accessible without authentication
-- 🔐 **Secure Admin**: Username/password authentication for content updates
-- ⚡ **FastAPI**: Modern, fast API framework with automatic documentation
-- 🗄️ **PostgreSQL**: Reliable database with migrations
-- 🚀 **Simple Deployment**: Single command startup, no Docker required
-
-### 🎯 **Perfect For**
-- **Portfolio Websites**: Manage your professional content easily
-- **Developers**: Clean API + admin panel = productivity
-- **Simple Projects**: No complex setup, just run and use
-
-## 🏗️ Architecture
-
-### Tech Stack
-- **FastAPI**: API framework with automatic docs
-- **SQLAdmin**: Beautiful admin panel for content management
-- **PostgreSQL**: Database with SQLAlchemy ORM
-- **Alembic**: Database migrations
-- **Python-JOSE + Passlib**: Secure authentication
-
-### Security Model
-- **GET endpoints**: Public (for frontend consumption)
-- **POST/PUT/DELETE**: Admin authentication required
-- **Admin Panel**: Same credentials as API
-- **Password hashing**: bcrypt for secure storage
-
-### Project Structure
-```
-app/
-├── admin.py          # Admin panel configuration
-├── main.py           # FastAPI application
-├── config.py         # Settings and environment variables
-├── database.py       # Database connection
-├── models/           # SQLAlchemy models
-├── routers/          # API endpoints
-├── schemas/          # Pydantic schemas
-├── services/         # Business logic
-└── utils/            # Utilities (admin setup, etc.)
-```
+- **🌍 Multilingual**: English and Spanish content support
+- **👨‍💼 Admin Panel**: SQLAdmin interface with Spanish localization
+- **⚡ Smart Caching**: Automatic cache in production, disabled in development
+- **🔒 Security**: Rate limiting, CORS, input sanitization, security headers
+- **📊 Monitoring**: Health checks, metrics, and performance tracking
+- **📚 Auto Docs**: Swagger UI and ReDoc integration
 
 ## 🚀 Quick Start
 
 ### 1. Environment Setup
 
 ```bash
+# Clone repository
+git clone <repository-url>
+cd portfolio-backend
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate   # Windows
+
 # Install dependencies
 pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
 # Edit .env with your database credentials
+
+# Key configuration for development:
+# ENVIRONMENT=development  # This disables cache automatically
+# POSTGRES_HOST=localhost
+# SECRET_KEY=your-secure-key-here
 ```
 
 ### 2. Database Setup
 
 ```bash
+# Create database
+createdb portfolio_db
+
 # Run migrations
 alembic upgrade head
 ```
 
-### 3. Admin User Setup
+### 3. Start Application
 
-**Option A: Automatic (default user)**
 ```bash
-# Start the application (creates default admin if none exists)
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-# Default credentials: admin@portfolio.com / admin123
-```
+# Development
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-**Option B: Interactive setup**
-```bash
-# Run interactive setup
-python setup_admin.py
-```
-
-### 4. Access Your Portfolio
-
-- **API Documentation**: http://localhost:8000/docs
-- **Admin Panel**: http://localhost:8000/admin/
-- **Health Check**: http://localhost:8000/health
-
-## 🎛️ Admin Panel
-
-The admin panel is the heart of this system, providing:
-
-- **📝 Content Management**: Easy editing of all portfolio sections
-- **👥 User Management**: Admin user management
-- **🔍 Search & Filter**: Quick content discovery
-- **📊 Clean Interface**: Professional, intuitive design
-- **🔐 Secure Access**: Same authentication as API
-
-### Admin Panel Sections
-- **About**: Personal information and bio
-- **Skills**: Technical and interpersonal skills
-- **Projects**: Portfolio projects with links
-- **Experience**: Work history
-- **Education**: Academic background
-- **Users**: Admin user management
-
-## 🔌 API Endpoints
-
-### Public Endpoints (No Authentication)
-```
-GET /api/v1/about/          # Get about information
-GET /api/v1/skills/         # Get all skills
-GET /api/v1/projects/       # Get all projects
-GET /api/v1/experience/     # Get work experience
-GET /api/v1/education/      # Get education history
-```
-
-### Admin Endpoints (Authentication Required)
-```
-POST /api/v1/auth/login     # Admin login
-POST /api/v1/skills/        # Create skill
-PUT  /api/v1/skills/{id}    # Update skill
-DELETE /api/v1/skills/{id}  # Delete skill
-# ... similar for all content types
-```
-
-### Authentication
-```bash
-# Login
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
-     -H "Content-Type: application/json" \
-     -d '{"username": "admin@portfolio.com", "password": "admin123"}'
-
-# Use returned token
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-     "http://localhost:8000/api/v1/skills/"
-```
-
-## 🗄️ Database Configuration
-
-### Environment Variables
-```env
-# Database
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=portfolio_db
-
-# Security
-SECRET_KEY=your-secret-key-here
-```
-
-### Migrations
-```bash
-# Create migration
-alembic revision --autogenerate -m "Description"
-
-# Apply migrations
-alembic upgrade head
-
-# Check current version
-alembic current
-```
-
-## 🚀 Deployment
-
-### Development
-```bash
-export PATH=$PATH:~/.local/bin
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### Production
-```bash
+# Production
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-### With Process Manager (PM2)
+### 4. Access
+
+- **API**: http://localhost:8000/api/v1/
+- **Admin Panel**: http://localhost:8000/admin (auto-creates admin user)
+- **API Docs**: http://localhost:8000/docs
+- **Alternative Docs**: http://localhost:8000/redoc
+
+## 📋 API Endpoints
+
+All endpoints support `?lang=en|es` parameter for multilingual content.
+
+### Public API (`/api/v1/`)
+
+- `GET /site-config/` - Site configuration and social media metadata
+- `GET /about/` - Personal information and biography
+- `GET /contact/` - Contact information and social links
+- `GET /skills/` - Skills grouped by categories
+- `GET /projects/` - Portfolio projects list
+- `GET /projects/{id}` - Specific project details
+- `GET /experience/` - Work experience records
+- `GET /experience/{id}` - Specific experience details
+- `GET /education/` - Education records
+- `GET /education/{id}` - Specific education details
+
+Complete API documentation: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create `.env` file (copy from `.env.example`):
+
 ```bash
-pm2 start "uvicorn app.main:app --host 0.0.0.0 --port 8000" --name portfolio-api
+# Environment (controls cache behavior)
+ENVIRONMENT=development  # development|production
+
+# Database
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-password
+POSTGRES_DB=portfolio_db
+
+# Security (required)
+SECRET_KEY=your-super-secure-secret-key-at-least-32-characters-long
+
+# CORS (environment-aware)
+CORS_ORIGINS=["*"]  # Development (permissive)
+# CORS_ORIGINS=["https://yourdomain.com"]  # Production (restrictive)
+
+# Optional settings
+RATE_LIMIT_PER_MINUTE=100
+MAX_UPLOAD_SIZE=10485760
 ```
 
-## 🔧 Configuration
+### Smart Caching System
 
-### Settings (app/config.py)
-- **Database**: PostgreSQL connection settings
-- **Authentication**: JWT settings and secrets
-- **CORS**: Cross-origin settings for frontend
-- **Debug**: Development/production mode
+**Environment-Based Caching:**
+- **Development** (`ENVIRONMENT=development`): Cache **DISABLED** - always fresh data
+- **Production** (`ENVIRONMENT=production`): Cache **ENABLED** - high performance
 
-### Admin Panel Customization
-- Modify `app/admin.py` to customize admin interface
-- Add/remove models from admin panel
-- Customize list views, forms, and permissions
+No manual cache management needed - the system adapts automatically!
+
+### CORS Configuration
+
+**Environment-Based CORS:**
+- **Development** (`ENVIRONMENT=development`): CORS **PERMISSIVE** - accepts all origins (`["*"]`)
+- **Production** (`ENVIRONMENT=production`): CORS **RESTRICTIVE** - only specified domains
+
+For production, set specific domains:
+```bash
+CORS_ORIGINS=["https://yourdomain.com", "https://www.yourdomain.com"]
+```
+
+### Admin Panel
+
+The admin panel is automatically available at `/admin` with:
+- ✅ **Auto Admin Creation**: Creates default admin user on first run
+- ✅ **Spanish Interface**: Localized labels and forms
+- ✅ **Content Management**: CRUD operations for all portfolio content
+- ✅ **User-Friendly**: Intuitive interface for non-technical users
+
+## 🏗️ Project Structure
+
+```
+app/
+├── admin/          # Admin interface configuration
+├── models/         # Database models (SQLAlchemy)
+├── routers/        # API endpoints (FastAPI)
+├── schemas/        # Data validation (Pydantic)  
+├── services/       # Business logic
+├── middleware/     # Security, performance, monitoring
+├── utils/          # Utilities (cache, validation, logging)
+├── config.py       # Application configuration
+├── main.py         # Application entry point
+└── database.py     # Database connection
+```
+
+## 🔧 Development
+
+### Common Commands
+
+```bash
+# Start development server
+uvicorn app.main:app --reload
+
+# Run tests  
+pytest
+
+# Create database migration
+alembic revision --autogenerate -m "Description"
+
+# Apply migration
+alembic upgrade head
+
+# Check code style
+flake8 app/
+black app/ --check
+```
+
+### Adding Content
+
+Use the admin panel at `/admin` to:
+- Add/edit personal information
+- Manage skills and categories
+- Add portfolio projects
+- Update work experience
+- Modify education records
+- Configure site metadata
+
+## 🚀 Deployment
+
+### Production Setup
+
+1. **Environment Configuration**:
+```bash
+ENVIRONMENT=production
+DEBUG=false
+SECRET_KEY=production-secure-key
+CORS_ORIGINS=["https://yourdomain.com"]
+```
+
+2. **Database Setup**:
+```bash
+# Production database
+createdb portfolio_prod
+alembic upgrade head
+```
+
+3. **Run with Gunicorn**:
+```bash
+pip install gunicorn
+gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
 
 ## 📚 Documentation
 
-- **API Docs**: Auto-generated at `/docs` (Swagger UI)
-- **ReDoc**: Alternative docs at `/redoc`
+- **API Documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+- **Interactive API Docs**: `/docs` (Swagger UI)  
+- **Alternative API Docs**: `/redoc` (ReDoc)
 - **Admin Help**: Built-in help in admin panel
+
+## 🔒 Security Features
+
+- **Rate Limiting**: Protection against abuse
+- **CORS Protection**: Configurable cross-origin policies
+- **Input Sanitization**: XSS and injection prevention
+- **Security Headers**: Comprehensive header configuration
+- **Session Security**: Secure admin authentication
+
+## 📊 Monitoring
+
+- **Health Checks**: `/health` endpoint
+- **Performance Metrics**: Built-in monitoring
+- **Structured Logging**: JSON logs for analysis
+- **Request Tracking**: Performance monitoring
 
 ## 🤝 Contributing
 
@@ -217,12 +261,12 @@ pm2 start "uvicorn app.main:app --host 0.0.0.0 --port 8000" --name portfolio-api
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- **Issues**: [GitHub Issues](https://github.com/mikebgdev/portfolio-backend/issues)
-- **Documentation**: Check `/docs` endpoint when running
+- **Issues**: Check logs and verify configuration
+- **API Docs**: Visit `/docs` when running
 - **Admin Panel**: Built-in help and intuitive interface
 
 ---

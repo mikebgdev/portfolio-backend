@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.deps.auth import get_db
 from app.schemas.projects import ProjectResponse
 from app.services.projects import project_service
 from app.config import settings
+from app.utils.validation import validate_language, build_response_with_language
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -15,19 +16,12 @@ async def get_projects(
 ):
     """Get all projects with multilingual support."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
     
     projects = project_service.get_projects(db)
     
     # Create response with language context
-    project_responses = []
-    for project in projects:
-        response = ProjectResponse.model_validate(project)
-        response.language = lang  # Set requested language for computed properties
-        project_responses.append(response)
-    
-    return project_responses
+    return build_response_with_language(projects, ProjectResponse, lang)
 
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
@@ -37,17 +31,10 @@ async def get_project(
 ):
     """Get specific project by ID with multilingual support."""
     # Validate language
-    if lang not in settings.supported_languages:
-        lang = settings.default_language
+    lang = validate_language(lang)
         
+    # Service will raise ContentNotFoundError if project doesn't exist
     project = project_service.get_project_by_id(db, project_id)
-    if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found"
-        )
     
-    response = ProjectResponse.model_validate(project)
-    response.language = lang  # Set requested language for computed properties
-    return response
+    return build_response_with_language(project, ProjectResponse, lang)
 

@@ -141,6 +141,7 @@ def cache_key(*args, **kwargs) -> str:
 def cached(ttl: int = 300, key_prefix: str = ""):
     """
     Decorator for caching function results.
+    Only caches in production environment.
     
     Args:
         ttl: Time to live in seconds (default: 5 minutes)
@@ -149,6 +150,13 @@ def cached(ttl: int = 300, key_prefix: str = ""):
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            from app.config import settings
+            
+            # Skip caching in development
+            if not settings.should_enable_cache:
+                logger.debug(f"Cache disabled for {func.__module__}.{func.__name__} in {settings.environment}")
+                return await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
+            
             # Generate cache key
             func_name = f"{func.__module__}.{func.__name__}"
             key_suffix = cache_key(*args, **kwargs)
@@ -219,10 +227,17 @@ class ContentCache:
 # Utility functions
 async def warm_cache():
     """Warm up cache with frequently accessed data."""
+    from app.config import settings
+    
+    # Skip cache warming in development
+    if not settings.should_enable_cache:
+        logger.info("Cache warming skipped - caching disabled")
+        return
+    
     try:
         from app.database import SessionLocal
         from app.services import (
-            about_service, skills_service, projects_service,
+            about_service, skill_service, project_service,
             experience_service, education_service, contact_service
         )
         
@@ -233,11 +248,11 @@ async def warm_cache():
         
         for lang in languages:
             # Cache skills
-            skills = skills_service.get_skills(db)
+            skills = skill_service.get_skills(db)
             await ContentCache.cache_content_list("skills", lang, skills, ttl=1800)  # 30 minutes
             
             # Cache projects
-            projects = projects_service.get_projects(db)
+            projects = project_service.get_projects(db)
             await ContentCache.cache_content_list("projects", lang, projects, ttl=1800)
             
             # Cache experiences
