@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     enable_http_cache: bool = True
     enable_compression: bool = True
     
+    # File Storage Settings
+    uploads_path: str = "uploads"
+    max_file_size: int = 10 * 1024 * 1024  # 10MB
+    allowed_image_extensions: list = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+    allowed_file_extensions: list = [".pdf", ".doc", ".docx", ".txt"]
+    
     @property
     def is_production(self) -> bool:
         """Check if running in production environment"""

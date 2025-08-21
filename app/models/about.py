@@ -16,7 +16,8 @@ class About(Base):
     birth_date = Column(Date, nullable=True)
     email = Column(String(255), nullable=False)
     location = Column(String(200), nullable=False)
-    photo_url = Column(String(500), nullable=True)
+    photo_url = Column(String(500), nullable=True)  # Keep as backup
+    photo_file = Column(String(500), nullable=True)  # File upload path
     
     # Multilingual Biography
     bio_en = Column(Text, nullable=False)

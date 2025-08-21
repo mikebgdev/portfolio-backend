@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.config import settings
+import os
 
 # Import exception handlers
 from app.exceptions import (
@@ -112,6 +114,14 @@ app.include_router(experience.router, prefix="/api/v1")
 app.include_router(education.router, prefix="/api/v1")
 app.include_router(contact.router, prefix="/api/v1")
 app.include_router(monitoring.router, prefix="/api/v1")
+
+# Mount static files for uploads
+uploads_dir = os.path.join(os.getcwd(), settings.uploads_path)
+if os.path.exists(uploads_dir):
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+    app_logger.info(f"Static files mounted at /uploads -> {uploads_dir}")
+else:
+    app_logger.warning(f"Uploads directory not found: {uploads_dir}")
 
 # Admin redirect route
 from starlette.responses import RedirectResponse
