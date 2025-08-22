@@ -1,5 +1,6 @@
 from typing import List
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -34,20 +35,44 @@ class Settings(BaseSettings):
     enable_rate_limiting: bool = True
 
     # CORS Settings
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:8080"]
+    cors_origins: List[str] = Field(
+        default=["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:8080"],
+        description="Allowed CORS origins (comma-separated in env: CORS_ORIGINS)"
+    )
     cors_allow_credentials: bool = True
+    cors_allow_all_origins: bool = False  # Set to True to allow all origins in development
 
     @property
     def effective_cors_origins(self) -> List[str]:
         """Get CORS origins based on environment"""
         if self.is_production:
             # In production, never allow wildcard origins
-            if "*" in self.cors_origins:
+            if "*" in self.cors_origins or self.cors_allow_all_origins:
                 raise ValueError("Wildcard CORS origins not allowed in production")
             return self.cors_origins
         else:
-            # In development, allow configured origins or wildcard for testing
-            return self.cors_origins if self.cors_origins else ["*"]
+            # Check if wildcard is explicitly allowed
+            if self.cors_allow_all_origins:
+                return ["*"]
+            
+            # In development, be more permissive and include common development ports
+            dev_origins = self.cors_origins.copy()
+            
+            # Add common development origins if not already present
+            common_dev_origins = [
+                "http://localhost:3000", "http://127.0.0.1:3000",
+                "http://localhost:8080", "http://127.0.0.1:8080", 
+                "http://localhost:5173", "http://127.0.0.1:5173",  # Vite
+                "http://localhost:4200", "http://127.0.0.1:4200",  # Angular
+                "http://localhost:8000", "http://127.0.0.1:8000",  # Alternative dev server
+                "http://localhost:3001", "http://127.0.0.1:3001",  # Alternative React port
+            ]
+            
+            for origin in common_dev_origins:
+                if origin not in dev_origins:
+                    dev_origins.append(origin)
+            
+            return dev_origins
 
     # Environment
     environment: str = "development"  # development, production

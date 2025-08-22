@@ -29,13 +29,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-        # More lenient headers for admin and docs
-        if path.startswith(("/admin", "/docs", "/redoc", "/openapi.json")):
+        # More lenient headers for admin, docs, and API endpoints
+        if path.startswith(("/admin", "/docs", "/redoc", "/openapi.json", "/api/")):
             response.headers["X-Frame-Options"] = "SAMEORIGIN"  # Allow iframe for admin
             # Very permissive CSP for API docs (FastAPI needs external CDNs)
             if path.startswith("/docs") or path.startswith("/redoc"):
                 # Disable CSP for docs - FastAPI docs need external resources
                 response.headers["Content-Security-Policy"] = ""
+            elif path.startswith("/api/"):
+                # No CSP for API endpoints to avoid CORS conflicts
+                pass
             else:
                 # Less restrictive CSP for admin
                 csp_directives = [

@@ -102,19 +102,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configure CORS with configurable origins
+# Add session middleware for admin authentication (before CORS)
+app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
+
+# Configure CORS with configurable origins (MUST be early in middleware stack)
+effective_origins = settings.effective_cors_origins
+app_logger.info(
+    f"CORS configured with origins: {effective_origins}, credentials: {settings.cors_allow_credentials}"
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.effective_cors_origins,
+    allow_origins=effective_origins,
     allow_credentials=settings.cors_allow_credentials,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Add session middleware for admin authentication
-app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
-
-# Add security middleware (order matters - add these first)
+# Add security middleware (after CORS to avoid conflicts)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     RateLimitingMiddleware, requests_per_minute=settings.rate_limit_per_minute
@@ -175,3 +180,14 @@ async def admin_auth_check(request: Request):
     if not request.session.get("authenticated"):
         return RedirectResponse(url="/admin/login", status_code=302)
     return RedirectResponse(url="/admin/", status_code=302)
+
+
+@app.get("/api/v1/debug/cors", include_in_schema=False)
+async def debug_cors():
+    """Debug endpoint to check CORS configuration."""
+    return {
+        "cors_origins": settings.effective_cors_origins,
+        "cors_allow_credentials": settings.cors_allow_credentials,
+        "environment": settings.environment,
+        "debug": settings.debug
+    }
