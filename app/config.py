@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
@@ -34,14 +34,15 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 100
     enable_rate_limiting: bool = True
 
-    # CORS Settings
-    cors_origins: List[str] = Field(
+    # CORS Settings  
+    cors_origins_raw: Union[str, List[str]] = Field(
         default=[
             "http://localhost:3000",
             "http://localhost:8080",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:8080",
         ],
+        alias="CORS_ORIGINS",
         description="Allowed CORS origins (comma-separated in env: CORS_ORIGINS)",
     )
     cors_allow_credentials: bool = True
@@ -49,14 +50,27 @@ class Settings(BaseSettings):
         False  # Set to True to allow all origins in development
     )
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins_raw", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v):
+    def parse_cors_origins_raw(cls, v):
         """Parse CORS origins from comma-separated string or list."""
         if isinstance(v, str):
+            # Handle empty strings
+            if not v.strip():
+                return []
             # If it's a string, split by comma and strip whitespace
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
+            origins = [origin.strip() for origin in v.split(",") if origin.strip()]
+            return origins if origins else []
+        elif v is None:
+            return []
         return v
+
+    @property
+    def cors_origins(self) -> List[str]:
+        """Get parsed CORS origins."""
+        if isinstance(self.cors_origins_raw, list):
+            return self.cors_origins_raw
+        return []
 
     @property
     def effective_cors_origins(self) -> List[str]:
