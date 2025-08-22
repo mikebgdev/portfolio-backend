@@ -1,5 +1,7 @@
-from sqlalchemy.orm import Session
 from typing import Generator
+
+from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 
 

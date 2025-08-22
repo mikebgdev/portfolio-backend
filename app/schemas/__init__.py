@@ -6,25 +6,20 @@ from .contact import ContactResponse
 from .education import EducationResponse
 from .experience import ExperienceResponse
 from .projects import ProjectResponse
-from .skills import (
-    SkillCategoryResponse,
-    SkillResponse,
-    SkillsGroupedResponse,
-    SkillNestedResponse,
-    CategoryWithSkillsResponse
-)
 from .site_config import SiteConfigResponse
+from .skills import (CategoryWithSkillsResponse, SkillCategoryResponse,
+                     SkillNestedResponse, SkillResponse, SkillsGroupedResponse)
 
 __all__ = [
     "AboutResponse",
     "ContactResponse",
     "EducationResponse",
-    "ExperienceResponse", 
+    "ExperienceResponse",
     "ProjectResponse",
     "SkillCategoryResponse",
     "SkillResponse",
     "SkillsGroupedResponse",
     "SkillNestedResponse",
     "CategoryWithSkillsResponse",
-    "SiteConfigResponse"
+    "SiteConfigResponse",
 ]
