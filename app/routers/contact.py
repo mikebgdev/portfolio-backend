@@ -18,13 +18,8 @@ async def get_contact(
     # Validate language
     lang = validate_language(lang)
     
-    # Get the first contact record (assuming single contact record)
+    # Get the contact record
     contact = contact_service.get_contact(db)
-    if not contact:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Contact content not found"
-        )
     
     # Create response with language context
     response = ContactResponse.model_validate(contact)

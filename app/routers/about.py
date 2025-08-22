@@ -18,13 +18,8 @@ async def get_about(
     # Validate language
     lang = validate_language(lang)
     
-    # Get the first about record (assuming single about record)
+    # Get the about record
     about = about_service.get_about(db)
-    if not about:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="About content not found"
-        )
     
     # Create response with language context
     response = AboutResponse.model_validate(about)

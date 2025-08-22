@@ -1,13 +1,14 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, List
+import secrets
 
 
 class Settings(BaseSettings):
     # Database Configuration
-    postgres_host: str = "192.168.10.200"
+    postgres_host: str = "localhost"
     postgres_port: int = 5432
     postgres_user: str = "postgres"
-    postgres_password: str = "changeme"
+    postgres_password: str
     postgres_db: str = "portfolio_db"
     
     @property
@@ -33,21 +34,20 @@ class Settings(BaseSettings):
     enable_rate_limiting: bool = True
     
     # CORS Settings
-    cors_origins: list = ["*"]  # Development defaults - permissive
+    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:8080"]
     cors_allow_credentials: bool = True
     
     @property
-    def effective_cors_origins(self) -> list:
+    def effective_cors_origins(self) -> List[str]:
         """Get CORS origins based on environment"""
         if self.is_production:
-            # In production, use specific origins for security
-            if self.cors_origins == ["*"]:
-                # If still using wildcard in production, use a secure default
-                return ["https://yourdomain.com"]
+            # In production, never allow wildcard origins
+            if "*" in self.cors_origins:
+                raise ValueError("Wildcard CORS origins not allowed in production")
             return self.cors_origins
         else:
-            # In development, be permissive
-            return self.cors_origins
+            # In development, allow configured origins or wildcard for testing
+            return self.cors_origins if self.cors_origins else ["*"]
     
     # Environment
     environment: str = "development"  # development, production
@@ -62,8 +62,13 @@ class Settings(BaseSettings):
     # File Storage Settings
     uploads_path: str = "uploads"
     max_file_size: int = 10 * 1024 * 1024  # 10MB
-    allowed_image_extensions: list = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
-    allowed_file_extensions: list = [".pdf", ".doc", ".docx", ".txt"]
+    allowed_image_extensions: List[str] = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+    allowed_file_extensions: List[str] = [".pdf", ".doc", ".docx", ".txt"]
+    
+    # Security Settings
+    admin_session_expire_hours: int = 24
+    max_login_attempts: int = 5
+    login_attempt_window_minutes: int = 15
     
     @property
     def is_production(self) -> bool:
