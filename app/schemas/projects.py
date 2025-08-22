@@ -29,11 +29,10 @@ class ProjectBase(BaseModel):
 
     # Non-translatable fields
     image_file: Optional[str] = Field(None, description="Project image file path")
-    technologies: str = Field(
+    technologies: List[str] = Field(
         ...,
         min_length=1,
-        max_length=500,
-        description="Technologies used (comma-separated)",
+        description="Technologies used as list",
     )
     source_url: Optional[str] = Field(None, description="Source code URL")
     demo_url: Optional[str] = Field(None, description="Live demo URL")
@@ -54,12 +53,22 @@ class ProjectBase(BaseModel):
 
     @validator("technologies")
     def validate_technologies(cls, v):
-        if not v or not v.strip():
-            raise ValueError("Technologies cannot be empty")
-        techs = [tech.strip() for tech in v.split(",") if tech.strip()]
+        if isinstance(v, str):
+            # Handle JSON string from database
+            try:
+                import json
+                techs = json.loads(v)
+            except json.JSONDecodeError:
+                # Handle comma-separated string
+                techs = [tech.strip() for tech in v.split(",") if tech.strip()]
+        elif isinstance(v, list):
+            techs = [str(tech).strip() for tech in v if str(tech).strip()]
+        else:
+            raise ValueError("Technologies must be a list or string")
+        
         if not techs:
             raise ValueError("At least one technology must be specified")
-        return ", ".join(techs)
+        return techs
 
     @validator("title_en", "title_es")
     def validate_titles(cls, v):

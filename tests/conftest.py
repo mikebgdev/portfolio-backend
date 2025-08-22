@@ -1,4 +1,5 @@
 """Test configuration and fixtures."""
+import json
 import pytest
 from datetime import date
 from fastapi.testclient import TestClient
@@ -140,7 +141,7 @@ def test_data(db_session):
         title_es="Proyecto de Prueba",
         description_en="Test project description",
         description_es="Descripción del proyecto de prueba",
-        technologies=["Python", "FastAPI"],
+        technologies=json.dumps(["Python", "FastAPI"]),
         source_url="https://github.com/test/project",
         demo_url="https://test-project.com",
         display_order=1,

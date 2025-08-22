@@ -42,8 +42,8 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         
         data = response.json()
-        assert data["site_name"] == "Test Portfolio"
-        assert data["site_description"] == "Test Description"
+        assert data["site_title"] == "Test Portfolio"
+        assert data["meta_description"] == "Test Description"
         assert data["og_type"] == "website"
     
     def test_skills_endpoint(self, client: TestClient, test_data):
