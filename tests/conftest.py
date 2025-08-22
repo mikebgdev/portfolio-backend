@@ -1,12 +1,14 @@
 """Test configuration and fixtures."""
 import pytest
+from datetime import date
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.main import app
-from app.database import Base, get_db
+from app.database import Base
+from app.deps.auth import get_db
 
 
 # Test database URL - in-memory SQLite
@@ -96,9 +98,9 @@ def test_data(db_session):
     
     # Create test site config
     site_config = SiteConfig(
-        site_name="Test Portfolio",
-        site_description="Test Description",
-        site_url="https://test.com",
+        site_title="Test Portfolio",
+        brand_name="Test Brand",
+        meta_description="Test Description",
         og_title="Test OG Title",
         og_description="Test OG Description",
         og_url="https://test.com",
@@ -111,20 +113,24 @@ def test_data(db_session):
     
     # Create test skill category
     skill_category = SkillCategory(
-        category_id="test",
+        slug="test",
         label_en="Test Category",
         label_es="Categoría de Prueba",
         icon_name="TestIcon",
-        display_order=1
+        display_order=1,
+        active=True
     )
     db_session.add(skill_category)
+    db_session.flush()  # Flush to get the ID
     
     # Create test skill
     skill = Skill(
-        name="Test Skill",
-        category_id="test",
+        name_en="Test Skill",
+        name_es="Habilidad de Prueba",
+        category_id=skill_category.id,
         icon_name="TestSkillIcon",
-        activa=True
+        color="#FF0000",
+        active=True
     )
     db_session.add(skill)
     
@@ -150,8 +156,8 @@ def test_data(db_session):
         position_es="Posición de Prueba",
         description_en="Test experience description",
         description_es="Descripción de experiencia de prueba",
-        start_date="2022-01-01",
-        end_date="2023-01-01",
+        start_date=date(2022, 1, 1),
+        end_date=date(2023, 1, 1),
         display_order=1,
         activo=True
     )
@@ -163,8 +169,8 @@ def test_data(db_session):
         location="Test City",
         degree_en="Test Degree",
         degree_es="Título de Prueba",
-        start_date="2020-01-01",
-        end_date="2022-01-01",
+        start_date=date(2020, 1, 1),
+        end_date=date(2022, 1, 1),
         display_order=1,
         activo=True
     )
