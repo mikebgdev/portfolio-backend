@@ -108,7 +108,8 @@ app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 # Configure CORS with configurable origins (MUST be early in middleware stack)
 effective_origins = settings.effective_cors_origins
 app_logger.info(
-    f"CORS configured with origins: {effective_origins}, credentials: {settings.cors_allow_credentials}"
+    f"CORS configured with origins: {effective_origins}, "
+    f"credentials: {settings.cors_allow_credentials}"
 )
 
 app.add_middleware(
