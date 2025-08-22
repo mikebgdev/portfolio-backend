@@ -29,6 +29,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
+        # Initialize CSP directives as None
+        csp_directives = None
+        
         # More lenient headers for admin, docs, and API endpoints
         if path.startswith(("/admin", "/docs", "/redoc", "/openapi.json", "/api/")):
             response.headers["X-Frame-Options"] = "SAMEORIGIN"  # Allow iframe for admin
@@ -63,7 +66,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["Permissions-Policy"] = (
                 "geolocation=(), microphone=(), camera=()"
             )
-            # Stricter CSP for API endpoints
+            # Stricter CSP for other endpoints
             csp_directives = [
                 "default-src 'self'",
                 "script-src 'self'",
@@ -80,8 +83,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "max-age=31536000; includeSubDomains"
             )
 
-        # Set CSP only if not already set above
-        if "Content-Security-Policy" not in response.headers:
+        # Set CSP only if not already set above and csp_directives is defined
+        if "Content-Security-Policy" not in response.headers and csp_directives is not None:
             response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
         return response
