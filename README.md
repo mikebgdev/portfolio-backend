@@ -1,92 +1,114 @@
 # Portfolio Backend API
 
-A robust FastAPI-based REST API for personal portfolio websites with multilingual support, admin panel, and automatic environment-based caching.
-
-![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+[![CI](https://github.com/mikebgdev/portfolio-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/mikebgdev/portfolio-backend/actions/workflows/ci.yml)
+[![Security](https://github.com/mikebgdev/portfolio-backend/actions/workflows/security.yml/badge.svg)](https://github.com/mikebgdev/portfolio-backend/actions/workflows/security.yml)
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
+
+A robust, production-ready FastAPI backend for personal portfolio websites with comprehensive monitoring, security, and deployment features.
 
 ## ✨ Features
 
-- **🌍 Multilingual**: English and Spanish content support
-- **👨‍💼 Admin Panel**: SQLAdmin interface with Spanish localization
-- **⚡ Smart Caching**: Automatic cache in production, disabled in development
-- **🔒 Security**: Rate limiting, CORS, input sanitization, security headers
-- **📊 Monitoring**: Health checks, metrics, and performance tracking
-- **📚 Auto Docs**: Swagger UI and ReDoc integration
+### Core Features
+- **🌍 Multilingual Support**: Complete English and Spanish content management
+- **📁 File Management**: Base64-encoded file serving with admin upload capabilities
+- **🏗️ Clean Architecture**: Service layer pattern with dependency injection
+- **📚 Auto Documentation**: Interactive Swagger UI and ReDoc interfaces
+
+### Security & Performance  
+- **🔒 Enterprise Security**: Rate limiting, input sanitization, security headers, CORS protection
+- **⚡ Smart Caching**: Environment-aware caching (production only)
+- **🛡️ Middleware Stack**: Comprehensive security, monitoring, and performance middleware
+- **🔍 Request Monitoring**: Performance tracking and structured logging
+
+### Administration & Deployment
+- **👨‍💼 Admin Panel**: SQLAdmin interface with Spanish localization and file uploads
+- **🐳 Docker Ready**: Multi-stage Dockerfile optimized for production
+- **🚀 CI/CD Pipeline**: Automated testing, security scanning, and deployment
+- **📊 Health Monitoring**: Built-in health checks and metrics collection
 
 ## 🚀 Quick Start
 
-### 1. Environment Setup
+Choose your preferred deployment method:
+
+### Option 1: Docker (Recommended)
 
 ```bash
-# Clone repository
-git clone <repository-url>
+# Clone and configure
+git clone https://github.com/mikebgdev/portfolio-backend.git
 cd portfolio-backend
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate   # Windows
+# Configure environment
+cp .env.production.example .env
+# Edit .env with your settings
 
-# Install dependencies
+# Start with Docker Compose
+docker-compose up -d
+
+# Run database migrations
+docker-compose exec app alembic upgrade head
+```
+
+### Option 2: Local Development
+
+```bash
+# Setup environment
+python3.11 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Set up environment variables
+# Configure database
 cp .env.example .env
-# Edit .env with your database credentials
+# Edit .env with PostgreSQL credentials
 
-# Key configuration for development:
-# ENVIRONMENT=development  # This disables cache automatically
-# POSTGRES_HOST=localhost
-# SECRET_KEY=your-secure-key-here
-```
-
-### 2. Database Setup
-
-```bash
-# Create database
+# Setup database
 createdb portfolio_db
-
-# Run migrations
 alembic upgrade head
+
+# Start development server
+uvicorn app.main:app --reload
 ```
 
-### 3. Start Application
+### Option 3: Coolify Deployment
 
-```bash
-# Development
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Production
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```yaml
+# Deploy directly to Coolify with:
+version: '3.8'
+services:
+  app:
+    image: ghcr.io/mikebgdev/portfolio-backend:latest
+    environment:
+      - POSTGRES_HOST=your-db-host
+      - SECRET_KEY=your-secret-key
+      - ENVIRONMENT=production
 ```
 
-### 4. Access
+### 🎯 Access Points
 
-- **API**: http://localhost:8000/api/v1/
-- **Admin Panel**: http://localhost:8000/admin (auto-creates admin user)
-- **API Docs**: http://localhost:8000/docs
-- **Alternative Docs**: http://localhost:8000/redoc
+- **🔧 Admin Panel**: http://localhost:8000/admin
+- **📚 API Docs**: http://localhost:8000/docs  
+- **🌐 API Base**: http://localhost:8000/api/v1/
+- **❤️ Health Check**: http://localhost:8000/admin/
 
-## 📋 API Endpoints
+## 📋 API Reference
 
-All endpoints support `?lang=en|es` parameter for multilingual content.
+### Core Endpoints
 
-### Public API (`/api/v1/`)
+All endpoints support `?lang=en|es` for multilingual content and return Base64-encoded file data.
 
-- `GET /site-config/` - Site configuration and social media metadata
-- `GET /about/` - Personal information and biography
-- `GET /contact/` - Contact information and social links
-- `GET /skills/` - Skills grouped by categories
-- `GET /projects/` - Portfolio projects list
-- `GET /projects/{id}` - Specific project details
-- `GET /experience/` - Work experience records
-- `GET /experience/{id}` - Specific experience details
-- `GET /education/` - Education records
-- `GET /education/{id}` - Specific education details
+| Endpoint | Method | Description | Features |
+|----------|--------|-------------|----------|
+| `/api/v1/site-config/` | GET | Site metadata & social sharing | SEO optimization |
+| `/api/v1/about/` | GET | Personal bio & information | Photo uploads |
+| `/api/v1/contact/` | GET | Contact details & CV | File downloads |
+| `/api/v1/skills/` | GET | Skills grouped by categories | Icon support |
+| `/api/v1/projects/` | GET | Portfolio projects | Image galleries |
+| `/api/v1/experience/` | GET | Work experience timeline | Date sorting |
+| `/api/v1/education/` | GET | Education records | Ongoing support |
 
-Complete API documentation: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+**📖 Complete Documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 
 ## ⚙️ Configuration
 
@@ -162,24 +184,43 @@ app/
 
 ## 🔧 Development
 
-### Common Commands
+### Development Commands
 
 ```bash
-# Start development server
-uvicorn app.main:app --reload
+# Start development server with auto-reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Run tests  
-pytest
+# Run all tests with coverage
+pytest tests/ -v --tb=short
 
-# Create database migration
-alembic revision --autogenerate -m "Description"
+# Code quality checks
+black app/ --check              # Format checking
+isort app/ --check              # Import sorting
+flake8 app/ --max-line-length=100  # Linting
+mypy app/ --ignore-missing-imports  # Type checking
 
-# Apply migration
-alembic upgrade head
+# Database operations
+alembic revision --autogenerate -m "Description"  # Create migration
+alembic upgrade head                               # Apply migrations
+alembic downgrade -1                              # Rollback last migration
 
-# Check code style
-flake8 app/
-black app/ --check
+# Docker development
+docker-compose up -d          # Start services
+docker-compose logs -f app    # View logs
+docker-compose exec app bash  # Shell access
+```
+
+### Testing
+
+```bash
+# Run specific test categories
+pytest tests/test_api_endpoints.py -v    # API tests
+pytest tests/test_services.py -v         # Service layer tests
+pytest -m "not slow"                     # Skip slow tests
+
+# Test with different environments
+ENVIRONMENT=testing pytest tests/       # Testing environment
+DEBUG=true pytest tests/                # Debug mode
 ```
 
 ### Adding Content
@@ -192,41 +233,51 @@ Use the admin panel at `/admin` to:
 - Modify education records
 - Configure site metadata
 
-## 🚀 Deployment
+## 🚀 Production Deployment
 
-### Production Setup
+### Docker Production Setup
 
-1. **Environment Configuration**:
 ```bash
-ENVIRONMENT=production
-DEBUG=false
-SECRET_KEY=production-secure-key
-CORS_ORIGINS=["https://yourdomain.com"]
+# Build production image
+docker build -t portfolio-backend:prod .
+
+# Run with production config
+docker run -d \
+  --name portfolio-api \
+  -p 8000:8000 \
+  -e ENVIRONMENT=production \
+  -e SECRET_KEY=your-secure-key \
+  -e POSTGRES_HOST=your-db-host \
+  portfolio-backend:prod
 ```
 
-2. **Database Setup**:
-```bash
-# Production database
-createdb portfolio_prod
-alembic upgrade head
-```
+### Coolify Deployment
 
-3. **Run with Gunicorn**:
+1. **Create new project** in Coolify
+2. **Set repository**: `https://github.com/mikebgdev/portfolio-backend`
+3. **Configure environment**:
+   ```env
+   ENVIRONMENT=production
+   SECRET_KEY=your-32-char-secret
+   POSTGRES_HOST=your-postgres-host
+   POSTGRES_PASSWORD=secure-password
+   CORS_ORIGINS=https://yourdomain.com
+   ```
+4. **Deploy**: Coolify auto-builds and deploys
+
+### Manual Production Setup  
+
 ```bash
+# Install production dependencies
 pip install gunicorn
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
-```
 
-### Docker Deployment
-
-```dockerfile
-FROM python:3.9-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run with multiple workers
+gunicorn app.main:app \
+  --workers 4 \
+  --worker-class uvicorn.workers.UvicornWorker \
+  --bind 0.0.0.0:8000 \
+  --access-logfile - \
+  --error-logfile -
 ```
 
 ## 📚 Documentation

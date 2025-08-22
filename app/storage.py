@@ -1,9 +1,10 @@
 """File storage configuration for fastapi-storages."""
-import os
-from pathlib import Path
-from fastapi_storages import FileSystemStorage
-from app.config import settings
 
+from pathlib import Path
+
+from fastapi_storages import FileSystemStorage
+
+from app.config import settings
 
 # Ensure upload directories exist
 uploads_path = Path(settings.uploads_path)
