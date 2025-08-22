@@ -7,11 +7,8 @@ from datetime import datetime
 class ContactBase(BaseModel):
     """Base schema for Contact with common fields."""
     email: str = Field(..., description="Email address")
-    phone: Optional[str] = Field(None, description="Phone number")
     linkedin_url: Optional[str] = Field(None, description="LinkedIn profile URL")
     github_url: Optional[str] = Field(None, description="GitHub profile URL")
-    twitter_url: Optional[str] = Field(None, description="Twitter profile URL")
-    instagram_url: Optional[str] = Field(None, description="Instagram profile URL")
     contact_form_enabled: Optional[bool] = Field(True, description="Enable contact form")
     
     # Multilingual contact messages

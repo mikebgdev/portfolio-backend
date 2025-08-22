@@ -8,6 +8,7 @@ from app.models.site_config import SiteConfig
 from app.schemas.site_config import SiteConfigCreate, SiteConfigUpdate
 from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
 from app.utils.cache import cached, ContentCache
+from app.utils.file_utils import encode_file_to_base64
 from typing import Optional
 import logging
 
@@ -17,7 +18,25 @@ logger = logging.getLogger(__name__)
 class SiteConfigService:
     def get_site_config(self, db: Session) -> Optional[SiteConfig]:
         """Get site configuration (there should be only one record)."""
-        return db.query(SiteConfig).first()
+        site_config = db.query(SiteConfig).first()
+        if site_config:
+            # Add file data if files exist
+            if hasattr(site_config, 'favicon_file') and site_config.favicon_file:
+                site_config.favicon_data = encode_file_to_base64(site_config.favicon_file)
+            else:
+                site_config.favicon_data = None
+                
+            if hasattr(site_config, 'og_image_file') and site_config.og_image_file:
+                site_config.og_image_data = encode_file_to_base64(site_config.og_image_file)
+            else:
+                site_config.og_image_data = None
+                
+            if hasattr(site_config, 'twitter_image_file') and site_config.twitter_image_file:
+                site_config.twitter_image_data = encode_file_to_base64(site_config.twitter_image_file)
+            else:
+                site_config.twitter_image_data = None
+        
+        return site_config
 
     def create_site_config(self, db: Session, site_config_data: SiteConfigCreate) -> SiteConfig:
         """Create site configuration."""

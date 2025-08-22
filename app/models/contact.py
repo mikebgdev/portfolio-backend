@@ -12,13 +12,10 @@ class Contact(Base):
     
     # Contact Methods
     email = Column(String(255), nullable=False)
-    phone = Column(String(50), nullable=True)
     
     # Social Media Links
     linkedin_url = Column(String(500), nullable=True)
     github_url = Column(String(500), nullable=True)
-    twitter_url = Column(String(500), nullable=True)
-    instagram_url = Column(String(500), nullable=True)
     
     # Contact Form Settings
     contact_form_enabled = Column(Boolean, default=True)
