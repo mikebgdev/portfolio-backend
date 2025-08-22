@@ -166,3 +166,5 @@ server.log
 # Temporary development files
 *.tmp
 *.temp
+
+uploads/

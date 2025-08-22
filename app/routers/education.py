@@ -29,20 +29,3 @@ async def get_education_records(
     
     return education_responses
 
-@router.get("/{education_id}", response_model=EducationResponse)
-async def get_education(
-    education_id: int, 
-    db: Session = Depends(get_db),
-    lang: Optional[str] = Query(default=settings.default_language, description="Language code (en, es)")
-):
-    """Get specific education record by ID with multilingual support."""
-    # Validate language
-    lang = validate_language(lang)
-        
-    # Service will raise ContentNotFoundError if education doesn't exist
-    education = education_service.get_education_by_id(db, education_id)
-    
-    response = EducationResponse.model_validate(education)
-    response.language = lang  # Set requested language for computed properties
-    return response
-

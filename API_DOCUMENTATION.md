@@ -102,15 +102,32 @@ Get site configuration including social media metadata for frontend sharing.
   "site_url": "https://mikebgdev.com",
   "og_title": "Mike BG Dev - Software Developer",
   "og_description": "Backend developer specialized in PHP and Python",
-  "og_image": "https://mikebgdev.com/og-image.jpg",
   "og_url": "https://mikebgdev.com",
   "og_type": "website",
   "twitter_card": "summary_large_image",
-  "twitter_site": "@mikebgdev",
-  "twitter_creator": "@mikebgdev",
   "twitter_title": "Mike BG Dev - Software Developer",
   "twitter_description": "Backend developer specialized in PHP and Python",
-  "twitter_image": "https://mikebgdev.com/twitter-image.jpg",
+  "favicon_file": "/uploads/images/abc123-favicon.ico",
+  "favicon_data": {
+    "data": "data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACg...",
+    "mime_type": "image/x-icon",
+    "size": 1150,
+    "filename": "abc123-favicon.ico"
+  },
+  "og_image_file": "/uploads/images/def456-og-image.jpg",
+  "og_image_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 25600,
+    "filename": "def456-og-image.jpg"
+  },
+  "twitter_image_file": "/uploads/images/ghi789-twitter-image.jpg",
+  "twitter_image_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 28900,
+    "filename": "ghi789-twitter-image.jpg"
+  },
   "created_at": "2025-08-11T20:31:37.777206Z",
   "updated_at": "2025-08-20T21:46:23.367523Z"
 }
@@ -229,17 +246,6 @@ Get all projects.
 ]
 ```
 
-#### GET /api/v1/projects/{project_id}
-Get specific project by ID.
-
-**Path Parameters:**
-- `project_id`: Project ID (integer)
-
-**Query Parameters:**
-- `lang` (optional): Language code (en, es). Default: en
-
-**Response:** Same as individual project object above.
-
 ---
 
 ### Experience
@@ -271,17 +277,6 @@ Get all work experiences.
 ]
 ```
 
-#### GET /api/v1/experience/{experience_id}
-Get specific experience by ID.
-
-**Path Parameters:**
-- `experience_id`: Experience ID (integer)
-
-**Query Parameters:**
-- `lang` (optional): Language code (en, es). Default: en
-
-**Response:** Same as individual experience object above.
-
 ---
 
 ### Education
@@ -311,17 +306,6 @@ Get all education records.
 ]
 ```
 
-#### GET /api/v1/education/{education_id}
-Get specific education record by ID.
-
-**Path Parameters:**
-- `education_id`: Education ID (integer)
-
-**Query Parameters:**
-- `lang` (optional): Language code (en, es). Default: en
-
-**Response:** Same as individual education object above.
-
 ---
 
 ### Contact
@@ -337,11 +321,8 @@ Get contact information.
 {
   "id": 1,
   "email": "mike@mikebgdev.com",
-  "phone": "+34 123 456 789",
   "linkedin_url": "https://linkedin.com/in/username",
   "github_url": "https://github.com/username",
-  "twitter_url": "https://twitter.com/username",
-  "instagram_url": "https://instagram.com/username",
   "contact_form_enabled": true,
   "contact_message_en": "Feel free to contact me",
   "contact_message_es": "No dudes en contactarme",

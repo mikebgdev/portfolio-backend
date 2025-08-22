@@ -29,20 +29,3 @@ async def get_experiences(
     
     return experience_responses
 
-@router.get("/{experience_id}", response_model=ExperienceResponse)
-async def get_experience(
-    experience_id: int, 
-    db: Session = Depends(get_db),
-    lang: Optional[str] = Query(default=settings.default_language, description="Language code (en, es)")
-):
-    """Get specific experience by ID with multilingual support."""
-    # Validate language
-    lang = validate_language(lang)
-        
-    # Service will raise ContentNotFoundError if experience doesn't exist
-    experience = experience_service.get_experience_by_id(db, experience_id)
-    
-    response = ExperienceResponse.model_validate(experience)
-    response.language = lang  # Set requested language for computed properties
-    return response
-
