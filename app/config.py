@@ -36,11 +36,18 @@ class Settings(BaseSettings):
 
     # CORS Settings
     cors_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:8080"],
-        description="Allowed CORS origins (comma-separated in env: CORS_ORIGINS)"
+        default=[
+            "http://localhost:3000",
+            "http://localhost:8080",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:8080",
+        ],
+        description="Allowed CORS origins (comma-separated in env: CORS_ORIGINS)",
     )
     cors_allow_credentials: bool = True
-    cors_allow_all_origins: bool = False  # Set to True to allow all origins in development
+    cors_allow_all_origins: bool = (
+        False  # Set to True to allow all origins in development
+    )
 
     @property
     def effective_cors_origins(self) -> List[str]:
@@ -54,24 +61,30 @@ class Settings(BaseSettings):
             # Check if wildcard is explicitly allowed
             if self.cors_allow_all_origins:
                 return ["*"]
-            
+
             # In development, be more permissive and include common development ports
             dev_origins = self.cors_origins.copy()
-            
+
             # Add common development origins if not already present
             common_dev_origins = [
-                "http://localhost:3000", "http://127.0.0.1:3000",
-                "http://localhost:8080", "http://127.0.0.1:8080", 
-                "http://localhost:5173", "http://127.0.0.1:5173",  # Vite
-                "http://localhost:4200", "http://127.0.0.1:4200",  # Angular
-                "http://localhost:8000", "http://127.0.0.1:8000",  # Alternative dev server
-                "http://localhost:3001", "http://127.0.0.1:3001",  # Alternative React port
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:8080",
+                "http://127.0.0.1:8080",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",  # Vite
+                "http://localhost:4200",
+                "http://127.0.0.1:4200",  # Angular
+                "http://localhost:8000",
+                "http://127.0.0.1:8000",  # Alternative dev server
+                "http://localhost:3001",
+                "http://127.0.0.1:3001",  # Alternative React port
             ]
-            
+
             for origin in common_dev_origins:
                 if origin not in dev_origins:
                     dev_origins.append(origin)
-            
+
             return dev_origins
 
     # Environment

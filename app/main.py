@@ -189,5 +189,5 @@ async def debug_cors():
         "cors_origins": settings.effective_cors_origins,
         "cors_allow_credentials": settings.cors_allow_credentials,
         "environment": settings.environment,
-        "debug": settings.debug
+        "debug": settings.debug,
     }

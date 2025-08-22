@@ -96,7 +96,9 @@ class SkillService:
                 )
                 category_skills.append(
                     SkillNestedResponse(
-                        name=str(skill_name), icon_name=str(skill.icon_name), color=str(skill.color)
+                        name=str(skill_name),
+                        icon_name=str(skill.icon_name),
+                        color=str(skill.color),
                     )
                 )
 

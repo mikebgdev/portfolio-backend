@@ -31,7 +31,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Initialize CSP directives as None
         csp_directives = None
-        
+
         # More lenient headers for admin, docs, and API endpoints
         if path.startswith(("/admin", "/docs", "/redoc", "/openapi.json", "/api/")):
             response.headers["X-Frame-Options"] = "SAMEORIGIN"  # Allow iframe for admin
@@ -84,7 +84,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             )
 
         # Set CSP only if not already set above and csp_directives is defined
-        if "Content-Security-Policy" not in response.headers and csp_directives is not None:
+        if (
+            "Content-Security-Policy" not in response.headers
+            and csp_directives is not None
+        ):
             response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
         return response

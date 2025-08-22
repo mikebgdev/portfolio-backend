@@ -58,9 +58,9 @@ class SiteConfigService:
             existing = db.query(SiteConfig).first()
             if existing:
                 raise ValidationError(
-                    "site_config", 
-                    "exists", 
-                    "Site configuration already exists. Use update instead."
+                    "site_config",
+                    "exists",
+                    "Site configuration already exists. Use update instead.",
                 )
 
             site_config = SiteConfig(**site_config_data.dict())
