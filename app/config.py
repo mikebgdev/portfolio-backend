@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     postgres_host: str = "localhost"
     postgres_port: int = 5432
     postgres_user: str = "postgres"
-    postgres_password: str
+    postgres_password: str = ""
     postgres_db: str = "portfolio_db"
 
     @property
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
         )
 
     # Authentication (only for SQLAdmin)
-    secret_key: str
+    secret_key: str = ""
 
     # Application Settings
     debug: bool = False

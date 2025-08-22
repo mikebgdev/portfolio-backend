@@ -162,8 +162,8 @@ class MetricsCollector:
             if not self.security_events:
                 return {"total_events": 0, "severity_breakdown": {}}
 
-            severity_count = defaultdict(int)
-            type_count = defaultdict(int)
+            severity_count: dict[str, int] = defaultdict(int)
+            type_count: dict[str, int] = defaultdict(int)
 
             for event in self.security_events:
                 severity_count[event["severity"]] += 1
@@ -288,8 +288,8 @@ class EnhancedHealthChecker:
     def __init__(self, metrics_collector: MetricsCollector):
         self.startup_time = datetime.now()
         self.metrics_collector = metrics_collector
-        self.last_health_check = None
-        self.health_cache = None
+        self.last_health_check: Optional[datetime] = None
+        self.health_cache: Optional[Dict[str, Any]] = None
         self.cache_duration = 30  # Cache health results for 30 seconds
 
     def get_comprehensive_health(self) -> Dict[str, Any]:
@@ -328,11 +328,14 @@ class EnhancedHealthChecker:
         failed_checks = []
         warning_checks = []
 
-        for name, check in health_data["checks"].items():
-            if check["status"] == "unhealthy":
-                failed_checks.append(name)
-            elif check["status"] == "warning":
-                warning_checks.append(name)
+        checks_dict = health_data.get("checks", {})
+        if isinstance(checks_dict, dict):
+            for name, check in checks_dict.items():
+                check_dict = check if isinstance(check, dict) else {}
+                if check_dict.get("status") == "unhealthy":
+                    failed_checks.append(name)
+                elif check_dict.get("status") == "warning":
+                    warning_checks.append(name)
 
         if failed_checks:
             health_data["status"] = "unhealthy"

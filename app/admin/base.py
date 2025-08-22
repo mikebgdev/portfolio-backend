@@ -28,7 +28,7 @@ class AdminAuth(AuthenticationBackend):
             if (
                 user
                 and user.is_active
-                and auth_service.verify_password(password, user.password_hash)
+                and auth_service.verify_password(str(password), str(user.password_hash))
             ):
                 # Store user info in session
                 request.session.update(
@@ -49,7 +49,7 @@ class AdminAuth(AuthenticationBackend):
         request.session.clear()
         return True
 
-    async def authenticate(self, request: Request) -> bool:
+    async def authenticate(self, request: Request):
         """Check if user is authenticated."""
         return request.session.get("authenticated", False)
 

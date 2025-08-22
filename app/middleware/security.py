@@ -90,7 +90,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, requests_per_minute: int = 60):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
-        self.requests_history = {}  # In production, use Redis
+        self.requests_history: dict[str, list[float]] = {}  # In production, use Redis
         self.window_size = 60  # 1 minute window
 
         # Paths with more lenient rate limits

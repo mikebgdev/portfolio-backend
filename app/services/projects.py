@@ -26,7 +26,7 @@ class ProjectService:
         # Add image data for each project
         for project in projects:
             if hasattr(project, "image_file") and project.image_file:
-                project.image_data = encode_file_to_base64(project.image_file)
+                project.image_data = encode_file_to_base64(str(project.image_file))
             else:
                 project.image_data = None
 
@@ -40,7 +40,7 @@ class ProjectService:
 
         # Add image data if image_file exists
         if hasattr(project, "image_file") and project.image_file:
-            project.image_data = encode_file_to_base64(project.image_file)
+            project.image_data = encode_file_to_base64(str(project.image_file))
         else:
             project.image_data = None
 

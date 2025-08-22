@@ -25,14 +25,14 @@ class SiteConfigService:
             # Add file data if files exist
             if hasattr(site_config, "favicon_file") and site_config.favicon_file:
                 site_config.favicon_data = encode_file_to_base64(
-                    site_config.favicon_file
+                    str(site_config.favicon_file)
                 )
             else:
                 site_config.favicon_data = None
 
             if hasattr(site_config, "og_image_file") and site_config.og_image_file:
                 site_config.og_image_data = encode_file_to_base64(
-                    site_config.og_image_file
+                    str(site_config.og_image_file)
                 )
             else:
                 site_config.og_image_data = None
@@ -42,14 +42,14 @@ class SiteConfigService:
                 and site_config.twitter_image_file
             ):
                 site_config.twitter_image_data = encode_file_to_base64(
-                    site_config.twitter_image_file
+                    str(site_config.twitter_image_file)
                 )
             else:
                 site_config.twitter_image_data = None
 
         return site_config
 
-    def create_site_config(
+    async def create_site_config(
         self, db: Session, site_config_data: SiteConfigCreate
     ) -> SiteConfig:
         """Create site configuration."""
@@ -58,6 +58,8 @@ class SiteConfigService:
             existing = db.query(SiteConfig).first()
             if existing:
                 raise ValidationError(
+                    "site_config", 
+                    "exists", 
                     "Site configuration already exists. Use update instead."
                 )
 
@@ -67,7 +69,7 @@ class SiteConfigService:
             db.refresh(site_config)
 
             # Clear any cached site config
-            ContentCache.invalidate_content_cache("site_config")
+            await ContentCache.invalidate_content_cache("site_config")
 
             logger.info(f"Site configuration created: {site_config.site_title}")
             return site_config
@@ -77,7 +79,7 @@ class SiteConfigService:
             logger.error(f"Database error creating site config: {str(e)}")
             raise DatabaseError(f"Database error: {str(e)}")
 
-    def update_site_config(
+    async def update_site_config(
         self, db: Session, site_config_data: SiteConfigUpdate
     ) -> SiteConfig:
         """Update site configuration."""
@@ -95,7 +97,7 @@ class SiteConfigService:
             db.refresh(site_config)
 
             # Clear cached site config
-            ContentCache.invalidate_content_cache("site_config")
+            await ContentCache.invalidate_content_cache("site_config")
 
             logger.info(f"Site configuration updated: {site_config.site_title}")
             return site_config
@@ -105,7 +107,7 @@ class SiteConfigService:
             logger.error(f"Database error updating site config: {str(e)}")
             raise DatabaseError(f"Database error: {str(e)}")
 
-    def delete_site_config(self, db: Session) -> None:
+    async def delete_site_config(self, db: Session) -> None:
         """Delete site configuration."""
         try:
             site_config = db.query(SiteConfig).first()
@@ -116,7 +118,7 @@ class SiteConfigService:
             db.commit()
 
             # Clear cached site config
-            ContentCache.invalidate_content_cache("site_config")
+            await ContentCache.invalidate_content_cache("site_config")
 
             logger.info("Site configuration deleted")
 

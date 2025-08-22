@@ -136,7 +136,7 @@ class SingletonService(BaseService[T]):
         """Get the singleton record or raise 404."""
         record = self.get(db)
         if not record:
-            raise ContentNotFoundError(f"{self.model_name.title()} content not found")
+            raise ContentNotFoundError(self.model_name, 0)
         return record
 
 

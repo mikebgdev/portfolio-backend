@@ -1,9 +1,10 @@
+import builtins
 import json
 import logging
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -171,7 +172,8 @@ class DatabaseLoggingHandler:
         }
 
         if execution_time is not None:
-            extra_data["execution_time_ms"] = round(execution_time * 1000, 2)
+            execution_ms = float(execution_time) * 1000
+            extra_data["execution_time_ms"] = int(execution_ms * 100) / 100
 
         self.logger.debug("Database query executed", extra=extra_data)
 
@@ -186,7 +188,8 @@ class DatabaseLoggingHandler:
         }
 
         if execution_time is not None:
-            extra_data["execution_time_ms"] = round(execution_time * 1000, 2)
+            execution_ms = float(execution_time) * 1000
+            extra_data["execution_time_ms"] = int(execution_ms * 100) / 100
 
         log_level = "info" if success else "error"
         getattr(self.logger, log_level)("Database transaction", extra=extra_data)
@@ -263,8 +266,8 @@ def get_logger(name: str) -> StructuredLogger:
 def log_api_error(
     endpoint: str,
     error: Exception,
-    user_id: int = None,
-    request_data: Dict[str, Any] = None,
+    user_id: Optional[int] = None,
+    request_data: Optional[Dict[str, Any]] = None,
 ):
     """Log API errors with context."""
     extra_data = {
@@ -275,9 +278,9 @@ def log_api_error(
     }
 
     if user_id:
-        extra_data["user_id"] = user_id
+        extra_data["user_id"] = str(user_id)
 
     if request_data:
-        extra_data["request_data"] = request_data
+        extra_data["request_data"] = str(request_data)
 
     app_logger.error("API error occurred", extra=extra_data, exc_info=True)

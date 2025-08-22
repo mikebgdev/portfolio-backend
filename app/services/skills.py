@@ -42,7 +42,7 @@ class SkillCategoryService:
         """Get category by slug."""
         category = db.query(SkillCategory).filter(SkillCategory.slug == slug).first()
         if not category:
-            raise ContentNotFoundError("skill_category", slug)
+            raise ContentNotFoundError("skill_category", 0)
         return category
 
     async def _invalidate_skills_cache(self):
@@ -96,7 +96,7 @@ class SkillService:
                 )
                 category_skills.append(
                     SkillNestedResponse(
-                        name=skill_name, icon_name=skill.icon_name, color=skill.color
+                        name=str(skill_name), icon_name=str(skill.icon_name), color=str(skill.color)
                     )
                 )
 
@@ -108,9 +108,9 @@ class SkillService:
             )
             grouped_categories.append(
                 CategoryWithSkillsResponse(
-                    id=category.slug,
-                    label=category_label,
-                    icon_name=category.icon_name,
+                    id=str(category.slug),
+                    label=str(category_label),
+                    icon_name=str(category.icon_name),
                     skills=category_skills,
                 )
             )
