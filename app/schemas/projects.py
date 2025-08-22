@@ -57,6 +57,7 @@ class ProjectBase(BaseModel):
             # Handle JSON string from database
             try:
                 import json
+
                 techs = json.loads(v)
             except json.JSONDecodeError:
                 # Handle comma-separated string
@@ -65,7 +66,7 @@ class ProjectBase(BaseModel):
             techs = [str(tech).strip() for tech in v if str(tech).strip()]
         else:
             raise ValueError("Technologies must be a list or string")
-        
+
         if not techs:
             raise ValueError("At least one technology must be specified")
         return techs
