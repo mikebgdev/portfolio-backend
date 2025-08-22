@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.deps.auth import get_db
-from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
 from app.schemas.site_config import SiteConfigResponse
 from app.services.site_config import site_config_service
 

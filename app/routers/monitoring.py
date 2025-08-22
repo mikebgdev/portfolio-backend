@@ -2,8 +2,6 @@
 Monitoring and metrics endpoints for Portfolio Backend API.
 """
 
-from typing import Optional
-
 from fastapi import APIRouter, Query
 
 from app.utils.cache import cache_manager

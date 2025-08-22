@@ -5,7 +5,6 @@ Site Configuration service for Portfolio Backend API.
 import logging
 from typing import Optional
 
-from fastapi import HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 

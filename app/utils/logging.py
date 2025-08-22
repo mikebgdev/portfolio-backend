@@ -5,11 +5,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict
 
-from fastapi import Request, Response
-from fastapi.routing import APIRoute
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
 
 from app.config import settings
 

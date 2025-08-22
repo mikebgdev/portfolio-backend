@@ -1,7 +1,7 @@
 """Base service class for common service patterns."""
 
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Generic, List, Optional, Type, TypeVar
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -39,9 +39,9 @@ class BaseService(Generic[T], ABC):
 
             # Add active filter if model has active field
             if hasattr(self.model, "activo"):
-                query = query.filter(self.model.activo == True)
+                query = query.filter(self.model.activo.is_(True))
             elif hasattr(self.model, "activa"):
-                query = query.filter(self.model.activa == True)
+                query = query.filter(self.model.activa.is_(True))
 
             # Add ordering
             query = self._apply_default_ordering(query)

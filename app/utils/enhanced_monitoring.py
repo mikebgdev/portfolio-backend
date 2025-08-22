@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 import psutil
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import SessionLocal

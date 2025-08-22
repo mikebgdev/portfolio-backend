@@ -2,7 +2,7 @@
 Site Configuration model for Portfolio Backend API.
 """
 
-from sqlalchemy import Column, DateTime, Integer, String, Text, func
+from sqlalchemy import Column, DateTime, Integer, String, func
 
 from app.database import Base
 

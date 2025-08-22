@@ -3,9 +3,6 @@ Admin user setup utilities.
 """
 
 import getpass
-import os
-
-from sqlalchemy.orm import Session
 
 from app.auth.oauth import AuthService
 from app.database import SessionLocal
@@ -97,11 +94,11 @@ def setup_admin_interactive():
             db.commit()
             db.refresh(admin)
 
-            print(f"\n✅ Admin user created successfully!")
+            print("\n✅ Admin user created successfully!")
             print(f"📧 Email: {admin.email}")
             print(f"👤 Name: {admin.name}")
             print(
-                f"\n🌐 You can now access the admin panel at: http://localhost:8000/admin/"
+                "\n🌐 You can now access the admin panel at: http://localhost:8000/admin/"
             )
 
             return admin

@@ -5,7 +5,7 @@ Monitoring middleware for automated metrics collection.
 import asyncio
 import time
 
-from fastapi import Request, Response
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 

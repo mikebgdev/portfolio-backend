@@ -4,10 +4,9 @@ Memory-based caching utilities for Portfolio Backend API.
 
 import asyncio
 import hashlib
-import json
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional
 
 from app.config import settings
 from app.utils.logging import get_logger
@@ -153,12 +152,12 @@ def cached(ttl: int = 300, key_prefix: str = ""):
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            from app.config import settings
 
             # Skip caching in development
             if not settings.should_enable_cache:
                 logger.debug(
-                    f"Cache disabled for {func.__module__}.{func.__name__} in {settings.environment}"
+                    f"Cache disabled for {func.__module__}.{func.__name__} in "
+                    f"{settings.environment}"
                 )
                 return (
                     await func(*args, **kwargs)
@@ -256,7 +255,6 @@ class ContentCache:
 # Utility functions
 async def warm_cache():
     """Warm up cache with frequently accessed data."""
-    from app.config import settings
 
     # Skip cache warming in development
     if not settings.should_enable_cache:

@@ -3,10 +3,9 @@
 import logging
 from typing import List, Optional
 
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
+from app.exceptions import ContentNotFoundError
 from app.models.skills import Skill, SkillCategory
 from app.schemas.skills import (
     CategoryWithSkillsResponse,
@@ -25,7 +24,7 @@ class SkillCategoryService:
         """Get all active skill categories."""
         return (
             db.query(SkillCategory)
-            .filter(SkillCategory.active == True)
+            .filter(SkillCategory.active.is_(True))
             .order_by(SkillCategory.display_order, SkillCategory.label_en)
             .all()
         )
@@ -72,7 +71,7 @@ class SkillService:
         """Get skills grouped by categories in the nested structure."""
         categories = (
             db.query(SkillCategory)
-            .filter(SkillCategory.active == True)
+            .filter(SkillCategory.active.is_(True))
             .order_by(SkillCategory.display_order)
             .all()
         )
@@ -82,7 +81,7 @@ class SkillService:
             # Get skills for this category
             skills = (
                 db.query(Skill)
-                .filter(Skill.category_id == category.id, Skill.active == True)
+                .filter(Skill.category_id == category.id, Skill.active.is_(True))
                 .order_by(Skill.display_order, Skill.name_en)
                 .all()
             )
@@ -120,7 +119,7 @@ class SkillService:
 
     def get_skills(self, db: Session, category_id: Optional[int] = None) -> List[Skill]:
         """Get all skills, optionally filtered by category ID."""
-        query = db.query(Skill).filter(Skill.active == True)
+        query = db.query(Skill).filter(Skill.active.is_(True))
         if category_id:
             query = query.filter(Skill.category_id == category_id)
         return query.order_by(Skill.display_order, Skill.name_en).all()

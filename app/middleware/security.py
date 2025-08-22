@@ -4,9 +4,9 @@ Security middleware for the Portfolio Backend API.
 
 import re
 import time
-from typing import List, Optional
+from typing import List
 
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
@@ -40,8 +40,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 # Less restrictive CSP for admin
                 csp_directives = [
                     "default-src 'self'",
-                    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
-                    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com",
+                    (
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+                        "https://cdn.jsdelivr.net https://unpkg.com"
+                    ),
+                    (
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
+                        "https://unpkg.com https://fonts.googleapis.com"
+                    ),
                     "img-src 'self' data: https: blob:",
                     "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
                     "connect-src 'self'",
@@ -335,7 +341,9 @@ class RequestSizeMiddleware(BaseHTTPMiddleware):
                         status_code=413,
                         content={
                             "error": "request_too_large",
-                            "message": f"Request body too large. Maximum size: {self.max_size} bytes",
+                            "message": (
+                                f"Request body too large. Maximum size: {self.max_size} bytes"
+                            ),
                             "max_size": self.max_size,
                         },
                     )

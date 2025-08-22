@@ -3,7 +3,7 @@ Custom exceptions and error handlers for the Portfolio Backend API.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse

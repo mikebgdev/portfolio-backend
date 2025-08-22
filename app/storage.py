@@ -1,6 +1,5 @@
 """File storage configuration for fastapi-storages."""
 
-import os
 from pathlib import Path
 
 from fastapi_storages import FileSystemStorage

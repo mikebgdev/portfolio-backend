@@ -1,11 +1,9 @@
 """Admin views for all models and custom views."""
 
-import httpx
 from sqladmin import BaseView, ModelView, expose
 from starlette.requests import Request
 
 from app.admin.file_fields import DocumentUploadField, ImageUploadField
-from app.config import settings
 from app.models.about import About
 from app.models.contact import Contact
 from app.models.education import Education

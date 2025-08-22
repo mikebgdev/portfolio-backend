@@ -15,7 +15,10 @@ class EducationService:
     """Service for managing education records."""
 
     def get_education_records(self, db: Session) -> List[Education]:
-        """Get all education records ordered by ongoing first (end_date=null), then most recent first."""
+        """
+        Get all education records ordered by ongoing first (end_date=null),
+        then most recent first.
+        """
         from sqlalchemy import case
 
         return (

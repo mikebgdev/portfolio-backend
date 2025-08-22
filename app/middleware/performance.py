@@ -188,7 +188,8 @@ class CompressionMiddleware(BaseHTTPMiddleware):
             headers["x-compression-ratio"] = f"{compression_ratio:.2f}"
 
             logger.debug(
-                f"Compressed response: {len(response_body)} -> {len(compressed_body)} bytes (ratio: {compression_ratio:.2f})"
+                f"Compressed response: {len(response_body)} -> {len(compressed_body)} bytes "
+                f"(ratio: {compression_ratio:.2f})"
             )
 
             return Response(
@@ -254,7 +255,9 @@ class RateLimitEnhancedMiddleware(BaseHTTPMiddleware):
                     status_code=429,
                     content={
                         "error": "rate_limit_exceeded",
-                        "message": f"Rate limit of {self.requests_per_minute} requests per minute exceeded",
+                        "message": (
+                            f"Rate limit of {self.requests_per_minute} requests per minute exceeded"
+                        ),
                         "retry_after": 60,
                     },
                     headers={
@@ -320,7 +323,7 @@ class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
         # Log slow requests
         if response_time > self.slow_request_threshold:
             logger.warning(
-                f"Slow request detected",
+                "Slow request detected",
                 extra={
                     "path": request.url.path,
                     "method": request.method,
@@ -332,7 +335,7 @@ class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
 
         # Log performance metrics
         logger.debug(
-            f"Request performance",
+            "Request performance",
             extra={
                 "path": request.url.path,
                 "method": request.method,

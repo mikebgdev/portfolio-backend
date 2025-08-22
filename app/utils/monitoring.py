@@ -1,10 +1,9 @@
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict
 
 import psutil
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.utils.logging import get_logger
@@ -51,7 +50,7 @@ class HealthChecker:
             db = SessionLocal()
 
             # Simple connectivity test
-            result = db.execute(text("SELECT 1")).scalar()
+            _ = db.execute(text("SELECT 1")).scalar()
 
             # Measure query time
             query_time = time.time() - start_time
@@ -195,7 +194,10 @@ class PerformanceMonitor:
                 {
                     "type": "high_error_rate",
                     "severity": "warning",
-                    "message": f"Error rate ({error_rate}%) exceeds threshold ({self.error_rate_threshold}%)",
+                    "message": (
+                        f"Error rate ({error_rate}%) exceeds threshold "
+                        f"({self.error_rate_threshold}%)"
+                    ),
                     "value": error_rate,
                     "threshold": self.error_rate_threshold,
                 }
@@ -208,7 +210,10 @@ class PerformanceMonitor:
                 {
                     "type": "high_response_time",
                     "severity": "warning",
-                    "message": f"Average response time ({avg_response_time:.2f}s) exceeds threshold ({self.response_time_threshold}s)",
+                    "message": (
+                        f"Average response time ({avg_response_time:.2f}s) exceeds threshold "
+                        f"({self.response_time_threshold}s)"
+                    ),
                     "value": avg_response_time,
                     "threshold": self.response_time_threshold,
                 }
@@ -221,7 +226,9 @@ class PerformanceMonitor:
                 {
                     "type": "high_auth_failure_rate",
                     "severity": "critical",
-                    "message": f"Authentication failure rate ({auth_failure_rate}%) is suspiciously high",
+                    "message": (
+                        f"Authentication failure rate ({auth_failure_rate}%) is suspiciously high"
+                    ),
                     "value": auth_failure_rate,
                     "threshold": 10.0,
                 }
