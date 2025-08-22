@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Union
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -48,6 +48,15 @@ class Settings(BaseSettings):
     cors_allow_all_origins: bool = (
         False  # Set to True to allow all origins in development
     )
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from comma-separated string or list."""
+        if isinstance(v, str):
+            # If it's a string, split by comma and strip whitespace
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
 
     @property
     def effective_cors_origins(self) -> List[str]:
