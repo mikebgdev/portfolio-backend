@@ -8,8 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
 from app.models.skills import Skill, SkillCategory
-from app.schemas.skills import (CategoryWithSkillsResponse,
-                                SkillNestedResponse, SkillsGroupedResponse)
+from app.schemas.skills import (
+    CategoryWithSkillsResponse,
+    SkillNestedResponse,
+    SkillsGroupedResponse,
+)
 from app.utils.cache import cache_manager, cached
 
 logger = logging.getLogger(__name__)

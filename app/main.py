@@ -13,21 +13,38 @@ from starlette.responses import RedirectResponse
 
 from app.admin import create_admin, register_admin_views
 from app.config import settings
-from app.exceptions import (PortfolioBaseException, general_exception_handler,
-                            http_exception_handler,
-                            portfolio_exception_handler,
-                            sqlalchemy_exception_handler)
-from app.middleware.monitoring import (DatabaseMetricsMiddleware,
-                                       MetricsMiddleware,
-                                       system_metrics_collector)
-from app.middleware.performance import (CacheMiddleware, CompressionMiddleware,
-                                        PerformanceMonitoringMiddleware)
-from app.middleware.security import (InputSanitizationMiddleware,
-                                     RateLimitingMiddleware,
-                                     RequestSizeMiddleware,
-                                     SecurityHeadersMiddleware)
-from app.routers import (about, contact, education, experience, projects,
-                         site_config, skills)
+from app.exceptions import (
+    PortfolioBaseException,
+    general_exception_handler,
+    http_exception_handler,
+    portfolio_exception_handler,
+    sqlalchemy_exception_handler,
+)
+from app.middleware.monitoring import (
+    DatabaseMetricsMiddleware,
+    MetricsMiddleware,
+    system_metrics_collector,
+)
+from app.middleware.performance import (
+    CacheMiddleware,
+    CompressionMiddleware,
+    PerformanceMonitoringMiddleware,
+)
+from app.middleware.security import (
+    InputSanitizationMiddleware,
+    RateLimitingMiddleware,
+    RequestSizeMiddleware,
+    SecurityHeadersMiddleware,
+)
+from app.routers import (
+    about,
+    contact,
+    education,
+    experience,
+    projects,
+    site_config,
+    skills,
+)
 from app.utils.cache import cache_manager, warm_cache
 from app.utils.logging import RequestLoggingMiddleware, app_logger
 

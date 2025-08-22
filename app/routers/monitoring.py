@@ -7,8 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Query
 
 from app.utils.cache import cache_manager
-from app.utils.enhanced_monitoring import (enhanced_health_checker,
-                                           metrics_collector)
+from app.utils.enhanced_monitoring import enhanced_health_checker, metrics_collector
 from app.utils.monitoring import health_checker
 from app.utils.monitoring import metrics_collector as basic_metrics
 

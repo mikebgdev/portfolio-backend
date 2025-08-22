@@ -13,6 +13,7 @@ from app.models.experience import Experience
 from app.models.projects import Project
 from app.models.site_config import SiteConfig
 from app.models.skills import Skill, SkillCategory
+
 # Import all models
 from app.models.user import User
 
@@ -433,8 +434,10 @@ class MetricsView(BaseView):
         try:
             # Import metrics directly instead of HTTP calls to avoid circular dependency
             from app.utils.cache import cache_manager
-            from app.utils.enhanced_monitoring import (enhanced_health_checker,
-                                                       metrics_collector)
+            from app.utils.enhanced_monitoring import (
+                enhanced_health_checker,
+                metrics_collector,
+            )
 
             # Ensure we have some system metrics
             metrics_collector.record_system_metrics()

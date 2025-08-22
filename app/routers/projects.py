@@ -7,8 +7,7 @@ from app.config import settings
 from app.deps.auth import get_db
 from app.schemas.projects import ProjectResponse
 from app.services.projects import project_service
-from app.utils.validation import (build_response_with_language,
-                                  validate_language)
+from app.utils.validation import build_response_with_language, validate_language
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 

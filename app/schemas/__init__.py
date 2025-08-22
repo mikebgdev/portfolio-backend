@@ -7,8 +7,13 @@ from .education import EducationResponse
 from .experience import ExperienceResponse
 from .projects import ProjectResponse
 from .site_config import SiteConfigResponse
-from .skills import (CategoryWithSkillsResponse, SkillCategoryResponse,
-                     SkillNestedResponse, SkillResponse, SkillsGroupedResponse)
+from .skills import (
+    CategoryWithSkillsResponse,
+    SkillCategoryResponse,
+    SkillNestedResponse,
+    SkillResponse,
+    SkillsGroupedResponse,
+)
 
 __all__ = [
     "AboutResponse",

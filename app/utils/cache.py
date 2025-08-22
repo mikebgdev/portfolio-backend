@@ -265,9 +265,14 @@ async def warm_cache():
 
     try:
         from app.database import SessionLocal
-        from app.services import (about_service, contact_service,
-                                  education_service, experience_service,
-                                  project_service, skill_service)
+        from app.services import (
+            about_service,
+            contact_service,
+            education_service,
+            experience_service,
+            project_service,
+            skill_service,
+        )
 
         db = SessionLocal()
 
