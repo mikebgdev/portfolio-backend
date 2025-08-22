@@ -73,6 +73,20 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_skills_id'), 'skills', ['id'], unique=False)
+    op.create_table('contact',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('phone', sa.String(), nullable=True),
+    sa.Column('linkedin_url', sa.String(), nullable=True),
+    sa.Column('github_url', sa.String(), nullable=True),
+    sa.Column('twitter_url', sa.String(), nullable=True),
+    sa.Column('instagram_url', sa.String(), nullable=True),
+    sa.Column('contact_form_enabled', sa.Boolean(), nullable=True),
+    sa.Column('contact_message_en', sa.Text(), nullable=True),
+    sa.Column('contact_message_es', sa.Text(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_contact_id'), 'contact', ['id'], unique=False)
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
@@ -95,6 +109,8 @@ def downgrade() -> None:
     op.drop_table('users')
     op.drop_index(op.f('ix_skills_id'), table_name='skills')
     op.drop_table('skills')
+    op.drop_index(op.f('ix_contact_id'), table_name='contact')
+    op.drop_table('contact')
     op.drop_index(op.f('ix_projects_id'), table_name='projects')
     op.drop_table('projects')
     op.drop_index(op.f('ix_experience_id'), table_name='experience')

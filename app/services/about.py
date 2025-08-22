@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.models.about import About
 from app.exceptions import DatabaseError
 from app.utils.cache import cache_manager
+from app.utils.file_utils import encode_file_to_base64
 from typing import Optional
 import logging
 
@@ -15,7 +16,14 @@ class AboutService:
     
     def get_about(self, db: Session) -> Optional[About]:
         """Get about section content."""
-        return db.query(About).first()
+        about = db.query(About).first()
+        if about:
+            # Add photo data if photo_file exists
+            if hasattr(about, 'photo_file') and about.photo_file:
+                about.photo_data = encode_file_to_base64(about.photo_file)
+            else:
+                about.photo_data = None
+        return about
 
     async def _invalidate_about_cache(self):
         """Invalidate all cached about endpoints."""

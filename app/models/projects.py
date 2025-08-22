@@ -17,7 +17,7 @@ class Project(Base):
     description_es = Column(Text, nullable=True)
     
     # Visual and technical details
-    image_url = Column(String(500), nullable=True)
+    image_file = Column(String(500), nullable=True)  # File upload path
     technologies = Column(Text, nullable=False)  # Comma-separated or JSON
     
     # Project links

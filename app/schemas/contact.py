@@ -1,17 +1,14 @@
 """Contact schemas for API requests and responses."""
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
 class ContactBase(BaseModel):
     """Base schema for Contact with common fields."""
     email: str = Field(..., description="Email address")
-    phone: Optional[str] = Field(None, description="Phone number")
     linkedin_url: Optional[str] = Field(None, description="LinkedIn profile URL")
     github_url: Optional[str] = Field(None, description="GitHub profile URL")
-    twitter_url: Optional[str] = Field(None, description="Twitter profile URL")
-    instagram_url: Optional[str] = Field(None, description="Instagram profile URL")
     contact_form_enabled: Optional[bool] = Field(True, description="Enable contact form")
     
     # Multilingual contact messages
@@ -19,7 +16,7 @@ class ContactBase(BaseModel):
     contact_message_es: Optional[str] = Field(None, description="Contact message in Spanish")
     
     # CV file
-    cv_file_url: Optional[str] = Field(None, description="CV file URL")
+    cv_file: Optional[str] = Field(None, description="CV file path")
 
 
 class ContactResponse(ContactBase):
@@ -29,6 +26,9 @@ class ContactResponse(ContactBase):
     updated_at: Optional[datetime] = None
     language: Optional[str] = 'en'
     available_languages: List[str] = ['en', 'es']
+    
+    # File data (populated by service layer)
+    cv_data: Optional[Dict[str, Any]] = Field(None, description="CV file as Base64 data URL")
 
     class Config:
         from_attributes = True

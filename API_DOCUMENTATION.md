@@ -12,6 +12,7 @@ Portfolio Backend API is a robust, scalable FastAPI-based REST API designed for 
 ## Features
 
 - ✅ **Multilingual Support**: Content available in English and Spanish
+- ✅ **File Uploads**: Support for images and document uploads via admin panel
 - ✅ **Caching**: High-performance in-memory caching with TTL
 - ✅ **Security**: Rate limiting, input sanitization, security headers
 - ✅ **CORS**: Cross-Origin Resource Sharing enabled
@@ -28,6 +29,35 @@ All content endpoints support the `lang` query parameter:
 - `lang=es` (Spanish)
 
 If an unsupported language is provided, the API defaults to English.
+
+## File Uploads and Base64 Encoding
+
+The API supports file uploads through the admin panel and returns them as Base64-encoded data URLs:
+
+- **Upload Path**: Files are uploaded to `/uploads/` directory on the server
+- **File Structure**: 
+  - Images: `/uploads/images/` (jpg, png, webp, gif)
+  - Documents: `/uploads/files/` (pdf, doc, docx, txt)
+- **Unique Filenames**: All uploads get UUID-based unique names to prevent conflicts
+- **API Response**: Files are returned as Base64 data URLs with MIME type information
+- **Size Limit**: Files larger than 10MB are not encoded to Base64 (returns null)
+
+**File Data Structure:**
+```json
+{
+  "photo_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 12345,
+    "filename": "abc123-photo.jpg"
+  }
+}
+```
+
+**Usage in Frontend:**
+- **Images**: Use `data` field directly in `<img src="..." />` tags
+- **Documents**: Use `data` field for download links or PDF viewers
+- **MIME Detection**: Automatic based on file extension
 
 ## Date Format and Ordering
 
@@ -72,15 +102,32 @@ Get site configuration including social media metadata for frontend sharing.
   "site_url": "https://mikebgdev.com",
   "og_title": "Mike BG Dev - Software Developer",
   "og_description": "Backend developer specialized in PHP and Python",
-  "og_image": "https://mikebgdev.com/og-image.jpg",
   "og_url": "https://mikebgdev.com",
   "og_type": "website",
   "twitter_card": "summary_large_image",
-  "twitter_site": "@mikebgdev",
-  "twitter_creator": "@mikebgdev",
   "twitter_title": "Mike BG Dev - Software Developer",
   "twitter_description": "Backend developer specialized in PHP and Python",
-  "twitter_image": "https://mikebgdev.com/twitter-image.jpg",
+  "favicon_file": "/uploads/images/abc123-favicon.ico",
+  "favicon_data": {
+    "data": "data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACg...",
+    "mime_type": "image/x-icon",
+    "size": 1150,
+    "filename": "abc123-favicon.ico"
+  },
+  "og_image_file": "/uploads/images/def456-og-image.jpg",
+  "og_image_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 25600,
+    "filename": "def456-og-image.jpg"
+  },
+  "twitter_image_file": "/uploads/images/ghi789-twitter-image.jpg",
+  "twitter_image_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 28900,
+    "filename": "ghi789-twitter-image.jpg"
+  },
   "created_at": "2025-08-11T20:31:37.777206Z",
   "updated_at": "2025-08-20T21:46:23.367523Z"
 }
@@ -104,7 +151,13 @@ Get personal information and bio.
   "birth_date": "1994-04-07",
   "email": "mike@mikebgdev.com",
   "location": "Anna, Valencia",
-  "photo_url": "https://example.com/profile.webp",
+  "photo_file": "/uploads/images/abc123-profile.jpg",
+  "photo_data": {
+    "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+    "mime_type": "image/jpeg",
+    "size": 15420,
+    "filename": "abc123-profile.jpg"
+  },
   "bio_en": "I'm a Software Developer...",
   "bio_es": "Soy Software Developer...",
   "hero_description_en": "Building scalable software...",
@@ -175,7 +228,13 @@ Get all projects.
     "title_es": "Backend Portfolio",
     "description_en": "FastAPI backend for portfolio website",
     "description_es": "Backend FastAPI para sitio web portfolio",
-    "image_url": "https://example.com/project.jpg",
+    "image_file": "/uploads/images/def456-project.jpg",
+    "image_data": {
+      "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA...",
+      "mime_type": "image/jpeg", 
+      "size": 28650,
+      "filename": "def456-project.jpg"
+    },
     "technologies": ["FastAPI", "Python", "PostgreSQL"],
     "source_url": "https://github.com/user/project",
     "demo_url": "https://project-demo.com",
@@ -186,17 +245,6 @@ Get all projects.
   }
 ]
 ```
-
-#### GET /api/v1/projects/{project_id}
-Get specific project by ID.
-
-**Path Parameters:**
-- `project_id`: Project ID (integer)
-
-**Query Parameters:**
-- `lang` (optional): Language code (en, es). Default: en
-
-**Response:** Same as individual project object above.
 
 ---
 
@@ -229,17 +277,6 @@ Get all work experiences.
 ]
 ```
 
-#### GET /api/v1/experience/{experience_id}
-Get specific experience by ID.
-
-**Path Parameters:**
-- `experience_id`: Experience ID (integer)
-
-**Query Parameters:**
-- `lang` (optional): Language code (en, es). Default: en
-
-**Response:** Same as individual experience object above.
-
 ---
 
 ### Education
@@ -269,17 +306,6 @@ Get all education records.
 ]
 ```
 
-#### GET /api/v1/education/{education_id}
-Get specific education record by ID.
-
-**Path Parameters:**
-- `education_id`: Education ID (integer)
-
-**Query Parameters:**
-- `lang` (optional): Language code (en, es). Default: en
-
-**Response:** Same as individual education object above.
-
 ---
 
 ### Contact
@@ -295,15 +321,18 @@ Get contact information.
 {
   "id": 1,
   "email": "mike@mikebgdev.com",
-  "phone": "+34 123 456 789",
   "linkedin_url": "https://linkedin.com/in/username",
   "github_url": "https://github.com/username",
-  "twitter_url": "https://twitter.com/username",
-  "instagram_url": "https://instagram.com/username",
   "contact_form_enabled": true,
   "contact_message_en": "Feel free to contact me",
   "contact_message_es": "No dudes en contactarme",
-  "cv_file_url": "https://example.com/cv.pdf",
+  "cv_file": "/uploads/files/ghi789-cv.pdf",
+  "cv_data": {
+    "data": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8...",
+    "mime_type": "application/pdf",
+    "size": 245678,
+    "filename": "ghi789-cv.pdf"
+  },
   "created_at": "2025-08-11T20:31:37.777206Z",
   "updated_at": "2025-08-20T21:46:23.367523Z",
   "language": "en"

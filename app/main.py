@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.config import settings
+import os
 
 # Import exception handlers
 from app.exceptions import (
@@ -44,7 +46,7 @@ from app.middleware.performance import (
 from app.utils.cache import cache_manager, warm_cache
 
 # Import routers
-from app.routers import about, skills, projects, experience, education, contact, site_config, monitoring
+from app.routers import about, skills, projects, experience, education, contact, site_config
 
 # Import admin panel
 from app.admin import create_admin, register_admin_views
@@ -111,33 +113,25 @@ app.include_router(projects.router, prefix="/api/v1")
 app.include_router(experience.router, prefix="/api/v1")
 app.include_router(education.router, prefix="/api/v1")
 app.include_router(contact.router, prefix="/api/v1")
-app.include_router(monitoring.router, prefix="/api/v1")
+
+# Mount static files for uploads
+uploads_dir = os.path.join(os.getcwd(), settings.uploads_path)
+if os.path.exists(uploads_dir):
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+    app_logger.info(f"Static files mounted at /uploads -> {uploads_dir}")
+else:
+    app_logger.warning(f"Uploads directory not found: {uploads_dir}")
 
 # Admin redirect route
 from starlette.responses import RedirectResponse
 from starlette.requests import Request
 
-@app.get("/")
-async def root():
-    return {"message": "Portfolio Backend API", "version": "1.0.0"}
-
-
-@app.get("/admin")
+@app.get("/admin", include_in_schema=False)
 async def admin_auth_check(request: Request):
     """Redirect to admin login if not authenticated, otherwise to admin panel."""
     if not request.session.get("authenticated"):
         return RedirectResponse(url="/admin/login", status_code=302)
     return RedirectResponse(url="/admin/", status_code=302)
-
-@app.get("/health")
-async def health_check():
-    """Comprehensive health check endpoint."""
-    return health_checker.get_application_health()
-
-@app.get("/metrics")
-async def get_metrics():
-    """Get application metrics."""
-    return metrics_collector.get_metrics()
 
 @app.on_event("startup")
 async def startup_event():

@@ -3,6 +3,7 @@ from sqladmin import ModelView, BaseView, expose
 from starlette.requests import Request
 import httpx
 from app.config import settings
+from app.admin.file_fields import ImageUploadField, DocumentUploadField
 
 # Import all models
 from app.models.user import User
@@ -57,8 +58,15 @@ class SiteConfigAdmin(ModelView, model=SiteConfig):
     icon = "fa-solid fa-cogs"
     
     form_excluded_columns = [SiteConfig.id, SiteConfig.created_at, SiteConfig.updated_at]
-    column_list = [SiteConfig.id, SiteConfig.site_title, SiteConfig.brand_name]
+    column_list = [SiteConfig.id, SiteConfig.site_title, SiteConfig.brand_name, SiteConfig.favicon_file]
     column_searchable_list = [SiteConfig.site_title, SiteConfig.brand_name]
+    
+    # Custom form fields for file uploads
+    form_overrides = {
+        'favicon_file': ImageUploadField,
+        'og_image_file': ImageUploadField,
+        'twitter_image_file': ImageUploadField
+    }
     
     column_labels = {
         "id": "ID",
@@ -66,19 +74,19 @@ class SiteConfigAdmin(ModelView, model=SiteConfig):
         "brand_name": "Nombre de la marca",
         "meta_description": "Meta descripción",
         "meta_keywords": "Meta palabras clave",
+        # File uploads
+        "favicon_file": "Archivo Favicon",
         # Open Graph fields
         "og_title": "Título OG",
         "og_description": "Descripción OG",
-        "og_image": "Imagen OG (URL)",
+        "og_image_file": "Archivo Imagen OG",
         "og_url": "URL Canónica",
         "og_type": "Tipo OG",
         # Twitter Card fields
         "twitter_card": "Tipo de Twitter Card",
-        "twitter_site": "Twitter del Sitio (@username)",
-        "twitter_creator": "Twitter del Creador (@username)",
         "twitter_title": "Título Twitter",
         "twitter_description": "Descripción Twitter",
-        "twitter_image": "Imagen Twitter (URL)",
+        "twitter_image_file": "Archivo Imagen Twitter",
         "created_at": "Fecha de creación",
         "updated_at": "Última modificación"
     }
@@ -95,8 +103,13 @@ class AboutAdmin(ModelView, model=About):
     icon = "fa-solid fa-user-circle"
     
     form_excluded_columns = [About.id, About.created_at, About.updated_at]
-    column_list = [About.id, About.name, About.last_name, About.email, About.location]
+    column_list = [About.id, About.name, About.last_name, About.email, About.location, About.photo_file]
     column_searchable_list = [About.name, About.last_name, About.email]
+    
+    # Custom form fields
+    form_overrides = {
+        'photo_file': ImageUploadField
+    }
     
     column_labels = {
         "id": "ID",
@@ -105,7 +118,7 @@ class AboutAdmin(ModelView, model=About):
         "birth_date": "Fecha de nacimiento",
         "email": "Correo electrónico",
         "location": "Ubicación",
-        "photo_url": "URL de la foto",
+        "photo_file": "Archivo de foto",
         "bio_en": "Biografía (Inglés)",
         "bio_es": "Biografía (Español)",
         "hero_description_en": "Descripción hero (Inglés)",
@@ -130,21 +143,23 @@ class ContactAdmin(ModelView, model=Contact):
     icon = "fa-solid fa-envelope"
     
     form_excluded_columns = [Contact.id, Contact.created_at, Contact.updated_at]
-    column_list = [Contact.id, Contact.email, Contact.phone, Contact.contact_form_enabled]
-    column_searchable_list = [Contact.email, Contact.phone]
+    column_list = [Contact.id, Contact.email, Contact.contact_form_enabled, Contact.cv_file]
+    column_searchable_list = [Contact.email]
+    
+    # Custom form fields
+    form_overrides = {
+        'cv_file': DocumentUploadField
+    }
     
     column_labels = {
         "id": "ID",
         "email": "Correo electrónico",
-        "phone": "Teléfono",
         "linkedin_url": "URL LinkedIn",
         "github_url": "URL GitHub",
-        "twitter_url": "URL Twitter",
-        "instagram_url": "URL Instagram",
         "contact_form_enabled": "¿Formulario contacto activo?",
         "contact_message_en": "Mensaje de contacto (Inglés)",
         "contact_message_es": "Mensaje de contacto (Español)",
-        "cv_file_url": "URL del archivo CV",
+        "cv_file": "Archivo CV",
         "created_at": "Fecha de creación",
         "updated_at": "Última modificación"
     }
@@ -218,9 +233,14 @@ class ProjectAdmin(ModelView, model=Project):
     icon = "fa-solid fa-folder-open"
     
     form_excluded_columns = [Project.id, Project.created_at]
-    column_list = [Project.id, Project.title_en, Project.technologies, Project.activa, Project.display_order]
+    column_list = [Project.id, Project.title_en, Project.technologies, Project.activa, Project.display_order, Project.image_file]
     column_searchable_list = [Project.title_en, Project.title_es, Project.technologies]
     column_sortable_list = [Project.id, Project.title_en, Project.display_order, Project.created_at]
+    
+    # Custom form fields
+    form_overrides = {
+        'image_file': ImageUploadField
+    }
     
     column_labels = {
         "id": "ID",
@@ -228,7 +248,7 @@ class ProjectAdmin(ModelView, model=Project):
         "title_es": "Título (Español)",
         "description_en": "Descripción (Inglés)",
         "description_es": "Descripción (Español)",
-        "image_url": "URL de la imagen",
+        "image_file": "Archivo de imagen",
         "technologies": "Tecnologías utilizadas",
         "source_url": "URL código fuente",
         "demo_url": "URL demo en vivo",

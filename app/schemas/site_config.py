@@ -2,7 +2,7 @@
 Site Configuration schemas for Portfolio Backend API.
 """
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
 
 
@@ -13,20 +13,21 @@ class SiteConfigBase(BaseModel):
     meta_description: Optional[str] = Field(None, max_length=500, description="Meta description for SEO")
     meta_keywords: Optional[str] = Field(None, max_length=300, description="Meta keywords for SEO")
     
+    # File uploads
+    favicon_file: Optional[str] = Field(None, description="Favicon file path")
+    
     # Open Graph metadata for social sharing
     og_title: Optional[str] = Field(None, max_length=200, description="Open Graph title for social sharing")
     og_description: Optional[str] = Field(None, max_length=500, description="Open Graph description for social sharing")
-    og_image: Optional[str] = Field(None, max_length=500, description="Open Graph image URL for social sharing")
+    og_image_file: Optional[str] = Field(None, description="Open Graph image file path")
     og_url: Optional[str] = Field(None, max_length=300, description="Canonical URL for Open Graph")
     og_type: Optional[str] = Field("website", max_length=50, description="Open Graph type (website, profile, etc.)")
     
     # Twitter Card metadata
     twitter_card: Optional[str] = Field("summary_large_image", max_length=50, description="Twitter card type")
-    twitter_site: Optional[str] = Field(None, max_length=100, description="Twitter @username for website")
-    twitter_creator: Optional[str] = Field(None, max_length=100, description="Twitter @username for creator")
     twitter_title: Optional[str] = Field(None, max_length=200, description="Twitter card title")
     twitter_description: Optional[str] = Field(None, max_length=500, description="Twitter card description")
-    twitter_image: Optional[str] = Field(None, max_length=500, description="Twitter card image URL")
+    twitter_image_file: Optional[str] = Field(None, description="Twitter card image file path")
 
 
 class SiteConfigCreate(SiteConfigBase):
@@ -41,20 +42,21 @@ class SiteConfigUpdate(BaseModel):
     meta_description: Optional[str] = Field(None, max_length=500)
     meta_keywords: Optional[str] = Field(None, max_length=300)
     
+    # File uploads
+    favicon_file: Optional[str] = Field(None)
+    
     # Open Graph metadata for social sharing
     og_title: Optional[str] = Field(None, max_length=200)
     og_description: Optional[str] = Field(None, max_length=500)
-    og_image: Optional[str] = Field(None, max_length=500)
+    og_image_file: Optional[str] = Field(None)
     og_url: Optional[str] = Field(None, max_length=300)
     og_type: Optional[str] = Field(None, max_length=50)
     
     # Twitter Card metadata
     twitter_card: Optional[str] = Field(None, max_length=50)
-    twitter_site: Optional[str] = Field(None, max_length=100)
-    twitter_creator: Optional[str] = Field(None, max_length=100)
     twitter_title: Optional[str] = Field(None, max_length=200)
     twitter_description: Optional[str] = Field(None, max_length=500)
-    twitter_image: Optional[str] = Field(None, max_length=500)
+    twitter_image_file: Optional[str] = Field(None)
 
 
 class SiteConfigResponse(SiteConfigBase):
@@ -62,6 +64,11 @@ class SiteConfigResponse(SiteConfigBase):
     id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    
+    # File data (populated by service layer)
+    favicon_data: Optional[Dict[str, Any]] = Field(None, description="Favicon file as Base64 data URL")
+    og_image_data: Optional[Dict[str, Any]] = Field(None, description="OG image file as Base64 data URL")
+    twitter_image_data: Optional[Dict[str, Any]] = Field(None, description="Twitter image file as Base64 data URL")
     
     class Config:
         from_attributes = True

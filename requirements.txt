@@ -31,6 +31,10 @@ psutil==5.9.6
 sqladmin==0.13.0
 itsdangerous==2.1.2
 
+# File uploads
+fastapi-storages==0.3.0
+Pillow==11.3.0
+
 # Performance
 slowapi==0.1.9
 
