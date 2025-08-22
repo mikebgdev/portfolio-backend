@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 100
     enable_rate_limiting: bool = True
 
-    # CORS Settings  
+    # CORS Settings
     cors_origins_raw: Union[str, List[str]] = Field(
         default=[
             "http://localhost:3000",
