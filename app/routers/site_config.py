@@ -23,6 +23,9 @@ async def get_site_config(db: Session = Depends(get_db)):
                 detail="Site configuration not found",
             )
         return site_config
+    except HTTPException:
+        # Re-raise HTTP exceptions to preserve status codes
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
