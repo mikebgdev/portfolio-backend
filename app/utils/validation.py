@@ -55,20 +55,26 @@ def build_response_with_language(
     Returns:
         Response object or list of response objects with language set
     """
+
     def process_item_data(item):
         # Convert SQLAlchemy model to dict for processing
-        if hasattr(item, '__dict__'):
+        if hasattr(item, "__dict__"):
             item_dict = {}
             for key, value in item.__dict__.items():
-                if not key.startswith('_'):
+                if not key.startswith("_"):
                     # Handle technologies field - convert JSON string to list
-                    if key == 'technologies' and isinstance(value, str):
+                    if key == "technologies" and isinstance(value, str):
                         try:
                             import json
+
                             item_dict[key] = json.loads(value)
                         except (json.JSONDecodeError, TypeError):
                             # Fallback to comma-separated parsing
-                            item_dict[key] = [tech.strip() for tech in value.split(",") if tech.strip()]
+                            item_dict[key] = [
+                                tech.strip()
+                                for tech in value.split(",")
+                                if tech.strip()
+                            ]
                     else:
                         item_dict[key] = value
             return item_dict
