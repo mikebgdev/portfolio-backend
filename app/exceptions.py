@@ -126,7 +126,7 @@ async def portfolio_exception_handler(
         f"Portfolio exception: {exc.error_code}",
         extra={
             "error_code": exc.error_code,
-            "message": exc.message,
+            "error_message": exc.message,
             "details": exc.details,
             "path": request.url.path,
             "method": request.method,

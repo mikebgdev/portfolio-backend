@@ -43,8 +43,8 @@ class TestBaseService:
         site_config = site_config_service.get_site_config(db_session)
         
         assert site_config is not None
-        assert site_config.site_name == "Test Portfolio"
-        assert site_config.site_description == "Test Description"
+        assert site_config.site_title == "Test Portfolio"
+        assert site_config.meta_description == "Test Description"
 
 
 class TestFileDataHandling:
