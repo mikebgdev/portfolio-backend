@@ -1,18 +1,21 @@
 """Validation utilities for common application patterns."""
-from typing import Optional, Union, List, TypeVar
+
+from typing import List, Optional, TypeVar, Union
+
 from pydantic import BaseModel
+
 from app.config import settings
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 def validate_language(lang: Optional[str]) -> str:
     """
     Validate and normalize language parameter.
-    
+
     Args:
         lang: Language code to validate
-        
+
     Returns:
         Valid language code (defaults to settings.default_language if invalid)
     """
@@ -24,42 +27,69 @@ def validate_language(lang: Optional[str]) -> str:
 def get_multilingual_text(text_en: str, text_es: Optional[str], language: str) -> str:
     """
     Get text in specified language with fallback to English.
-    
+
     Args:
         text_en: English text
         text_es: Spanish text (optional)
         language: Requested language code
-        
+
     Returns:
         Text in requested language or English fallback
     """
-    if language == 'es' and text_es:
+    if language == "es" and text_es:
         return text_es
     return text_en
 
 
-def build_response_with_language(model_data: Union[object, List[object]], 
-                               response_class: type[T], 
-                               language: str) -> Union[T, List[T]]:
+def build_response_with_language(
+    model_data: Union[object, List[object]], response_class: type[T], language: str
+) -> Union[T, List[T]]:
     """
     Build response object(s) with language context.
-    
+
     Args:
         model_data: Database model object or list of objects
         response_class: Pydantic response class
         language: Language code to set
-        
+
     Returns:
         Response object or list of response objects with language set
     """
+
+    def process_item_data(item):
+        # Convert SQLAlchemy model to dict for processing
+        if hasattr(item, "__dict__"):
+            item_dict = {}
+            for key, value in item.__dict__.items():
+                if not key.startswith("_"):
+                    # Handle technologies field - convert JSON string to list
+                    if key == "technologies" and isinstance(value, str):
+                        try:
+                            import json
+
+                            item_dict[key] = json.loads(value)
+                        except (json.JSONDecodeError, TypeError):
+                            # Fallback to comma-separated parsing
+                            item_dict[key] = [
+                                tech.strip()
+                                for tech in value.split(",")
+                                if tech.strip()
+                            ]
+                    else:
+                        item_dict[key] = value
+            return item_dict
+        return item
+
     if isinstance(model_data, list):
         responses = []
         for item in model_data:
-            response = response_class.model_validate(item)
+            processed_item = process_item_data(item)
+            response = response_class.model_validate(processed_item)
             response.language = language
             responses.append(response)
         return responses
     else:
-        response = response_class.model_validate(model_data)
+        processed_item = process_item_data(model_data)
+        response = response_class.model_validate(processed_item)
         response.language = language
         return response

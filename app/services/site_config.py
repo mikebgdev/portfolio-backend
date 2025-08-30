@@ -1,16 +1,18 @@
 """
 Site Configuration service for Portfolio Backend API.
 """
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+
+import logging
+from typing import Optional
+
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
 from app.models.site_config import SiteConfig
 from app.schemas.site_config import SiteConfigCreate, SiteConfigUpdate
-from app.exceptions import ContentNotFoundError, DatabaseError, ValidationError
-from app.utils.cache import cached, ContentCache
+from app.utils.cache import ContentCache, cached
 from app.utils.file_utils import encode_file_to_base64
-from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -21,48 +23,65 @@ class SiteConfigService:
         site_config = db.query(SiteConfig).first()
         if site_config:
             # Add file data if files exist
-            if hasattr(site_config, 'favicon_file') and site_config.favicon_file:
-                site_config.favicon_data = encode_file_to_base64(site_config.favicon_file)
+            if hasattr(site_config, "favicon_file") and site_config.favicon_file:
+                site_config.favicon_data = encode_file_to_base64(
+                    str(site_config.favicon_file)
+                )
             else:
                 site_config.favicon_data = None
-                
-            if hasattr(site_config, 'og_image_file') and site_config.og_image_file:
-                site_config.og_image_data = encode_file_to_base64(site_config.og_image_file)
+
+            if hasattr(site_config, "og_image_file") and site_config.og_image_file:
+                site_config.og_image_data = encode_file_to_base64(
+                    str(site_config.og_image_file)
+                )
             else:
                 site_config.og_image_data = None
-                
-            if hasattr(site_config, 'twitter_image_file') and site_config.twitter_image_file:
-                site_config.twitter_image_data = encode_file_to_base64(site_config.twitter_image_file)
+
+            if (
+                hasattr(site_config, "twitter_image_file")
+                and site_config.twitter_image_file
+            ):
+                site_config.twitter_image_data = encode_file_to_base64(
+                    str(site_config.twitter_image_file)
+                )
             else:
                 site_config.twitter_image_data = None
-        
+
         return site_config
 
-    def create_site_config(self, db: Session, site_config_data: SiteConfigCreate) -> SiteConfig:
+    async def create_site_config(
+        self, db: Session, site_config_data: SiteConfigCreate
+    ) -> SiteConfig:
         """Create site configuration."""
         try:
             # Ensure only one site config exists
             existing = db.query(SiteConfig).first()
             if existing:
-                raise ValidationError("Site configuration already exists. Use update instead.")
-            
+                raise ValidationError(
+                    "site_config",
+                    "exists",
+                    "Site configuration already exists. Use update instead.",
+                )
+
             site_config = SiteConfig(**site_config_data.dict())
             db.add(site_config)
             db.commit()
             db.refresh(site_config)
-            
+
             # Clear any cached site config
-            ContentCache.invalidate_content_cache("site_config")
-            
+            await ContentCache.invalidate_content_cache("site_config")
+
             logger.info(f"Site configuration created: {site_config.site_title}")
             return site_config
-            
+
         except SQLAlchemyError as e:
             db.rollback()
             logger.error(f"Database error creating site config: {str(e)}")
             raise DatabaseError(f"Database error: {str(e)}")
 
-    def update_site_config(self, db: Session, site_config_data: SiteConfigUpdate) -> SiteConfig:
+    async def update_site_config(
+        self, db: Session, site_config_data: SiteConfigUpdate
+    ) -> SiteConfig:
         """Update site configuration."""
         try:
             site_config = db.query(SiteConfig).first()
@@ -76,19 +95,19 @@ class SiteConfigService:
 
             db.commit()
             db.refresh(site_config)
-            
+
             # Clear cached site config
-            ContentCache.invalidate_content_cache("site_config")
-            
+            await ContentCache.invalidate_content_cache("site_config")
+
             logger.info(f"Site configuration updated: {site_config.site_title}")
             return site_config
-            
+
         except SQLAlchemyError as e:
             db.rollback()
             logger.error(f"Database error updating site config: {str(e)}")
             raise DatabaseError(f"Database error: {str(e)}")
 
-    def delete_site_config(self, db: Session) -> None:
+    async def delete_site_config(self, db: Session) -> None:
         """Delete site configuration."""
         try:
             site_config = db.query(SiteConfig).first()
@@ -97,12 +116,12 @@ class SiteConfigService:
 
             db.delete(site_config)
             db.commit()
-            
+
             # Clear cached site config
-            ContentCache.invalidate_content_cache("site_config")
-            
+            await ContentCache.invalidate_content_cache("site_config")
+
             logger.info("Site configuration deleted")
-            
+
         except SQLAlchemyError as e:
             db.rollback()
             logger.error(f"Database error deleting site config: {str(e)}")

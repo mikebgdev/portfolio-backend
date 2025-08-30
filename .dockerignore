@@ -53,16 +53,14 @@ logs/
 *.log
 
 # Docker
-Dockerfile*
 docker-compose*.yml
-.dockerignore
 
 # Git
 .git/
 .gitignore
 
-# Documentation
-README.md
+# Documentation (keep README)
+!README.md
 docs/
 
 # Testing
