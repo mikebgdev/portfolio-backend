@@ -1,9 +1,10 @@
 """Contact schemas for API requests and responses."""
 
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ContactBase(BaseModel):
@@ -51,3 +52,62 @@ class ContactResponse(ContactBase):
         if self.language == "es" and self.contact_message_es:
             return self.contact_message_es
         return self.contact_message_en
+
+
+# Contact Message schemas for the send message endpoint
+class ContactMessageRequest(BaseModel):
+    """Schema for contact message requests."""
+
+    name: str = Field(..., min_length=1, max_length=255, description="Sender's name")
+    email: str = Field(..., description="Sender's email address")
+    subject: Optional[str] = Field(
+        None, max_length=500, description="Message subject"
+    )
+    message: str = Field(
+        ..., min_length=1, max_length=5000, description="Message content"
+    )
+    phone: Optional[str] = Field(
+        None, max_length=50, description="Optional phone number"
+    )
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        """Validate email format."""
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, v):
+            raise ValueError("Invalid email format")
+        return v.lower().strip()
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        """Validate and clean name."""
+        return v.strip()
+
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, v: str) -> str:
+        """Validate and clean message."""
+        return v.strip()
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        """Validate and clean phone number."""
+        if v:
+            # Remove common phone formatting characters
+            cleaned = re.sub(r'[^\d+\-\(\)\s]', '', v.strip())
+            return cleaned if cleaned else None
+        return v
+
+
+class ContactMessageResponse(BaseModel):
+    """Schema for contact message responses."""
+
+    success: bool = Field(..., description="Whether the message was sent successfully")
+    message: str = Field(..., description="Response message")
+    id: Optional[str] = Field(None, description="Message ID (optional)")
+
+    class Config:
+        from_attributes = True

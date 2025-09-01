@@ -3,6 +3,7 @@
 # Individual domain models
 from .about import About
 from .contact import Contact
+from .contact_message import ContactMessage
 from .education import Education
 from .experience import Experience
 from .projects import Project
@@ -13,6 +14,7 @@ from .user import User
 __all__ = [
     "About",
     "Contact",
+    "ContactMessage",
     "Education",
     "Experience",
     "Project",

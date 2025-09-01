@@ -13,6 +13,7 @@ A robust, production-ready FastAPI backend for personal portfolio websites with 
 
 ### Core Features
 - **🌍 Multilingual Support**: Complete English and Spanish content management
+- **🎨 Iconify Integration**: Comprehensive icon and color management system with 100+ technology presets
 - **📁 File Management**: Base64-encoded file serving with admin upload capabilities
 - **🏗️ Clean Architecture**: Service layer pattern with dependency injection
 - **📚 Auto Documentation**: Interactive Swagger UI and ReDoc interfaces
@@ -24,7 +25,9 @@ A robust, production-ready FastAPI backend for personal portfolio websites with 
 - **🔍 Request Monitoring**: Performance tracking and structured logging
 
 ### Administration & Deployment
-- **👨‍💼 Admin Panel**: SQLAdmin interface with Spanish localization and file uploads
+- **👨‍💼 Enhanced Admin Panel**: SQLAdmin with smart tooltips, icon previews, and real-time validation
+- **🎯 Smart Form Fields**: Automatic color suggestions for popular technologies
+- **📧 Email System**: Multilingual contact forms with Gmail SMTP integration
 - **🐳 Docker Ready**: Multi-stage Dockerfile optimized for production
 - **🚀 CI/CD Pipeline**: Automated testing, security scanning, and deployment
 - **📊 Health Monitoring**: Built-in health checks and metrics collection
@@ -103,12 +106,20 @@ All endpoints support `?lang=en|es` for multilingual content and return Base64-e
 | `/api/v1/site-config/` | GET | Site metadata & social sharing | SEO optimization |
 | `/api/v1/about/` | GET | Personal bio & information | Photo uploads |
 | `/api/v1/contact/` | GET | Contact details & CV | File downloads |
-| `/api/v1/skills/` | GET | Skills grouped by categories | Icon support |
+| `/api/v1/skills/` | GET | Skills grouped by categories | Iconify integration |
 | `/api/v1/projects/` | GET | Portfolio projects | Image galleries |
 | `/api/v1/experience/` | GET | Work experience timeline | Date sorting |
 | `/api/v1/education/` | GET | Education records | Ongoing support |
 
-**📖 Complete Documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+### Iconify Features
+| Endpoint | Description | Purpose |
+|----------|-------------|---------|
+| `/api/v1/iconify/tooltip` | Icon validation & suggestions | Smart admin tooltips |
+| `/api/v1/iconify/search` | Search technology icons | Find appropriate icons |
+| `/api/v1/iconify/categories` | Popular icon categories | Browse icon collections |
+| `/api/v1/iconify/validate-color` | Color format validation | Ensure valid colors |
+
+**📖 Complete Documentation**: [docs/api/API_DOCUMENTATION.md](./docs/api/API_DOCUMENTATION.md) | **🎨 Iconify Guide**: [docs/iconify/README.md](./docs/iconify/README.md)
 
 ## ⚙️ Configuration
 
@@ -282,10 +293,12 @@ gunicorn app.main:app \
 
 ## 📚 Documentation
 
-- **API Documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-- **Interactive API Docs**: `/docs` (Swagger UI)  
-- **Alternative API Docs**: `/redoc` (ReDoc)
-- **Admin Help**: Built-in help in admin panel
+- **📖 API Documentation**: [docs/api/API_DOCUMENTATION.md](./docs/api/API_DOCUMENTATION.md)
+- **🎨 Iconify System**: [docs/iconify/README.md](./docs/iconify/README.md)
+- **🛠️ Admin Guide**: [docs/iconify/admin-guide.md](./docs/iconify/admin-guide.md)
+- **📚 Interactive API Docs**: `/docs` (Swagger UI)  
+- **📚 Alternative API Docs**: `/redoc` (ReDoc)
+- **🎯 Admin Help**: Built-in tooltips and smart validation
 
 ## 🔒 Security Features
 

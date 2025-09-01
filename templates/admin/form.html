@@ -1,0 +1,336 @@
+{% extends "form.html" %}
+
+{% block content %}
+{{ super() }}
+
+<!-- Iconify Admin Integration -->
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+
+<script>
+// Enhanced Iconify admin field helpers
+class IconifyAdminHelper {
+    constructor() {
+        this.apiBase = '/api/v1/iconify';
+        this.initFields();
+    }
+    
+    initFields() {
+        // Initialize icon fields
+        document.querySelectorAll('input[name="icon_name"], input[name*="icon"]').forEach(field => {
+            this.setupIconField(field);
+        });
+        
+        // Initialize color fields  
+        document.querySelectorAll('input[name="color"], input[name*="color"]').forEach(field => {
+            this.setupColorField(field);
+        });
+        
+        // Setup field relationships
+        this.setupFieldRelationships();
+    }
+    
+    setupIconField(field) {
+        // Add icon preview
+        this.addIconPreview(field);
+        
+        // Add suggestions
+        this.addIconSuggestions(field);
+        
+        // Add change handler
+        field.addEventListener('change', (e) => this.handleIconChange(e.target));
+        field.addEventListener('input', (e) => this.debounceIconUpdate(e.target));
+    }
+    
+    setupColorField(field) {
+        // Add color preview
+        this.addColorPreview(field);
+        
+        // Add validation
+        field.addEventListener('input', (e) => this.validateColor(e.target));
+        field.addEventListener('change', (e) => this.validateColor(e.target));
+    }
+    
+    addIconPreview(field) {
+        const container = document.createElement('div');
+        container.className = 'iconify-preview-container';
+        container.innerHTML = `
+            <div class="d-flex align-items-center mt-2">
+                <span class="iconify-preview me-2" style="font-size: 24px;"></span>
+                <small class="text-muted icon-info"></small>
+            </div>
+        `;
+        
+        field.parentNode.appendChild(container);
+        
+        // Initial preview
+        if (field.value) {
+            this.updateIconPreview(field);
+        }
+    }
+    
+    addColorPreview(field) {
+        const container = document.createElement('div');
+        container.className = 'color-preview-container';
+        container.innerHTML = `
+            <div class="d-flex align-items-center mt-2">
+                <div class="color-preview me-2" style="
+                    width: 24px; height: 24px; border: 1px solid #ccc; 
+                    border-radius: 4px; display: inline-block;
+                "></div>
+                <small class="text-muted color-info"></small>
+            </div>
+        `;
+        
+        field.parentNode.appendChild(container);
+        
+        // Initial preview
+        if (field.value) {
+            this.updateColorPreview(field);
+        }
+    }
+    
+    addIconSuggestions(field) {
+        // Create datalist with popular icons
+        const datalistId = 'icon-suggestions-' + Math.random().toString(36).substr(2, 9);
+        field.setAttribute('list', datalistId);
+        
+        const datalist = document.createElement('datalist');
+        datalist.id = datalistId;
+        
+        const suggestions = [
+            'python', 'javascript', 'typescript', 'react', 'vue', 'angular',
+            'docker', 'kubernetes', 'nodejs', 'code', 'database', 'server',
+            'figma', 'vscode', 'notion', 'obsidian', 'github', 'gitlab',
+            'briefcase', 'graduation-cap', 'mail', 'phone', 'settings'
+        ];
+        
+        suggestions.forEach(suggestion => {
+            const option = document.createElement('option');
+            option.value = suggestion;
+            datalist.appendChild(option);
+        });
+        
+        document.body.appendChild(datalist);
+    }
+    
+    async handleIconChange(field) {
+        const iconName = field.value.trim();
+        if (!iconName) return;
+        
+        try {
+            // Get tooltip info
+            const response = await fetch(`${this.apiBase}/tooltip?icon_name=${encodeURIComponent(iconName)}&context=skill`);
+            const data = await response.json();
+            
+            // Update icon preview
+            this.updateIconPreview(field, data);
+            
+            // Auto-suggest color if available and color field is empty
+            if (data.suggested_color) {
+                const colorField = this.findRelatedColorField(field);
+                if (colorField && !colorField.value.trim()) {
+                    colorField.value = data.suggested_color;
+                    this.updateColorPreview(colorField);
+                    
+                    // Show notification
+                    this.showNotification(`Color sugerido: ${data.suggested_color}`, 'info');
+                }
+            }
+            
+        } catch (error) {
+            console.warn('Error fetching icon info:', error);
+        }
+    }
+    
+    debounceIconUpdate = this.debounce((field) => {
+        this.updateIconPreview(field);
+    }, 300);
+    
+    updateIconPreview(field, data = null) {
+        const container = field.parentNode.querySelector('.iconify-preview-container');
+        if (!container) return;
+        
+        const preview = container.querySelector('.iconify-preview');
+        const info = container.querySelector('.icon-info');
+        
+        const iconName = field.value.trim();
+        
+        if (iconName) {
+            // Show icon using Iconify
+            preview.innerHTML = `<iconify-icon icon="simple-icons:${iconName}"></iconify-icon>`;
+            
+            // Fallback to other icon sets if simple-icons fails
+            setTimeout(() => {
+                if (!preview.querySelector('iconify-icon').shadowRoot) {
+                    preview.innerHTML = `<iconify-icon icon="lucide:${iconName}"></iconify-icon>`;
+                }
+            }, 100);
+            
+            if (data) {
+                info.textContent = data.normalized_name !== iconName ? 
+                    `Normalizado: ${data.normalized_name}` : 'Icono válido';
+            } else {
+                info.textContent = `Icono: ${iconName}`;
+            }
+        } else {
+            preview.innerHTML = '';
+            info.textContent = '';
+        }
+    }
+    
+    validateColor(field) {
+        const colorValue = field.value.trim();
+        const container = field.parentNode.querySelector('.color-preview-container');
+        if (!container) return;
+        
+        const info = container.querySelector('.color-info');
+        
+        if (!colorValue) {
+            field.classList.remove('is-valid', 'is-invalid');
+            info.textContent = '';
+            return;
+        }
+        
+        // Simple validation
+        const isHex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(colorValue);
+        const isTailwind = /^text-\w+(-\d+)?$/.test(colorValue);
+        const isCssColor = /^[a-z]+$/i.test(colorValue);
+        
+        if (isHex || isTailwind || isCssColor) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            info.textContent = isHex ? 'Color hex válido' : isTailwind ? 'Clase Tailwind' : 'Color CSS';
+        } else {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+            info.textContent = 'Formato inválido';
+        }
+        
+        this.updateColorPreview(field);
+    }
+    
+    updateColorPreview(field) {
+        const container = field.parentNode.querySelector('.color-preview-container');
+        if (!container) return;
+        
+        const preview = container.querySelector('.color-preview');
+        const colorValue = field.value.trim();
+        
+        if (colorValue.startsWith('#') && /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(colorValue)) {
+            preview.style.backgroundColor = colorValue;
+            preview.style.border = '1px solid #ccc';
+        } else {
+            preview.style.backgroundColor = 'transparent';
+            preview.style.border = '1px dashed #ccc';
+        }
+    }
+    
+    findRelatedColorField(iconField) {
+        // Try to find color field in the same form
+        const form = iconField.closest('form');
+        if (!form) return null;
+        
+        return form.querySelector('input[name="color"], input[name*="color"]');
+    }
+    
+    setupFieldRelationships() {
+        // Additional relationship setup can go here
+        console.log('Iconify admin helper initialized successfully');
+    }
+    
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    }
+    
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new IconifyAdminHelper();
+});
+</script>
+
+<style>
+/* Enhanced styling for iconify fields */
+.iconify-preview-container, .color-preview-container {
+    margin-top: 0.5rem;
+}
+
+.iconify-preview iconify-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+}
+
+.color-preview {
+    transition: background-color 0.2s ease;
+}
+
+.is-valid {
+    border-color: #198754 !important;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.icon-info, .color-info {
+    font-size: 0.8rem;
+}
+
+/* Form field enhancements */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Tooltip improvements */
+[title] {
+    cursor: help;
+}
+
+/* Admin panel enhancements */
+.admin-iconify-help {
+    background: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0.375rem;
+}
+
+.admin-iconify-help h6 {
+    color: #0d6efd;
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}

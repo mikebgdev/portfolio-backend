@@ -2,9 +2,11 @@
 
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
+
+from app.utils.iconify import get_icon_tooltip_info, validate_hex_color, format_hex_color
 
 
 class SkillCategoryBase(BaseModel):
@@ -83,12 +85,25 @@ class SkillBase(BaseModel):
         if v:
             if not v.strip():
                 return None
+            
+            stripped_v = v.strip()
+            
+            # Check if it's a hex color
+            if stripped_v.startswith('#'):
+                if not validate_hex_color(stripped_v):
+                    raise ValueError(
+                        'Invalid hex color format. Use format like #FF0000 or #F00'
+                    )
+                return format_hex_color(stripped_v)
+            
+            # Check if it's a Tailwind CSS class or valid CSS color name
             if not re.match(
-                r"^(text-\w+-\d+|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|\w+)$", v.strip()
+                r"^(text-\w+(-\d+)?|\w+)$", stripped_v
             ):
                 raise ValueError(
-                    'Invalid color format. Use CSS classes like "text-blue-500" or hex colors'
+                    'Invalid color format. Use hex colors (#FF0000), Tailwind classes (text-blue-500), or CSS color names'
                 )
+                
         return v.strip() if v else None
 
 
@@ -108,6 +123,11 @@ class SkillResponse(SkillBase):
     def name(self) -> str:
         """Return skill name in requested language (fallback to English)."""
         return self.name_es if self.language == "es" and self.name_es else self.name_en
+
+    @property
+    def icon_tooltip(self) -> Dict:
+        """Get icon and color tooltip information."""
+        return get_icon_tooltip_info(self.icon_name, self.color, "skill")
 
 
 # Nested Skills Response Schemas (for the grouped structure)
