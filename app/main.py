@@ -176,6 +176,12 @@ if os.path.exists(uploads_dir):
 else:
     app_logger.warning(f"Uploads directory not found: {uploads_dir}")
 
+# Mount static files for templates (if they exist) - helps with Coolify deployment
+templates_static_dir = os.path.join(os.getcwd(), "templates", "static")
+if os.path.exists(templates_static_dir):
+    app.mount("/static", StaticFiles(directory=templates_static_dir), name="static")
+    app_logger.info(f"Template static files mounted at /static -> {templates_static_dir}")
+
 
 @app.get("/admin", include_in_schema=False)
 async def admin_auth_check(request: Request):

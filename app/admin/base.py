@@ -67,5 +67,7 @@ def create_admin(app):
         title="Portfolio Admin Panel",
         logo_url="https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
         templates_dir="templates",
+        # Fix for Coolify deployment - ensure proper static file serving
+        debug=settings.debug,
     )
     return admin

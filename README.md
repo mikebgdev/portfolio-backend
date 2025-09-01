@@ -76,16 +76,18 @@ uvicorn app.main:app --reload
 
 ### Option 3: Coolify Deployment
 
-```yaml
-# Deploy directly to Coolify with:
-version: '3.8'
-services:
-  app:
-    image: ghcr.io/mikebgdev/portfolio-backend:latest
-    environment:
-      - POSTGRES_HOST=your-db-host
-      - SECRET_KEY=your-secret-key
-      - ENVIRONMENT=production
+```bash
+# Repository: https://github.com/yourusername/portfolio-backend
+# Branch: main
+
+# Required Environment Variables:
+ENVIRONMENT=production
+SECRET_KEY=your-32-char-secure-key
+POSTGRES_HOST=your-postgres-service
+POSTGRES_PASSWORD=secure-password
+CORS_ORIGINS=["https://yourdomain.com"]
+
+# See coolify-deploy.md for complete guide
 ```
 
 ### 🎯 Access Points
@@ -266,15 +268,18 @@ docker run -d \
 
 1. **Create new project** in Coolify
 2. **Set repository**: `https://github.com/mikebgdev/portfolio-backend`
-3. **Configure environment**:
+3. **Configure environment** (see `.env.coolify.example`):
    ```env
    ENVIRONMENT=production
    SECRET_KEY=your-32-char-secret
    POSTGRES_HOST=your-postgres-host
    POSTGRES_PASSWORD=secure-password
-   CORS_ORIGINS=https://yourdomain.com
+   CORS_ORIGINS=["https://yourdomain.com"]
    ```
 4. **Deploy**: Coolify auto-builds and deploys
+5. **Run migrations**: `alembic upgrade head`
+
+**📚 Complete Guide**: [coolify-deploy.md](./coolify-deploy.md)
 
 ### Manual Production Setup  
 
