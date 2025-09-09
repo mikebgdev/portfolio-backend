@@ -5,6 +5,7 @@ from starlette.requests import Request
 
 from app.admin.file_fields import DocumentUploadField, ImageUploadField
 from app.admin.iconify_fields import ColorField, IconifyField
+from app.admin.enhanced_skills_field import EnhancedSkillsField
 from app.models.about import About
 from app.models.contact import Contact
 from app.models.education import Education
@@ -345,7 +346,10 @@ class ProjectAdmin(ModelView, model=Project):
     ]
 
     # Custom form fields
-    form_overrides = {"image_file": ImageUploadField}
+    form_overrides = {
+        "image_file": ImageUploadField,
+        "skills": EnhancedSkillsField,
+    }
 
     # Configure the many-to-many relationship
     form_include_pk = True
@@ -365,16 +369,21 @@ class ProjectAdmin(ModelView, model=Project):
         "created_at": "Fecha de creación",
     }
 
-    # Help text for the skills field
+    # Enhanced help text for the searchable skills field
     form_args = {
         "skills": {
             "description": """
-💡 <strong>Selecciona las habilidades/tecnologías usadas en este proyecto.</strong><br>
-• Mantén Ctrl/Cmd presionado para seleccionar múltiples skills<br>
-• Los skills seleccionados aparecerán en el frontend del proyecto<br>
-• Si no encuentras una tecnología, créala primero en la sección de Habilidades<br>
+🚀 <strong>Selector Avanzado de Habilidades/Tecnologías</strong><br>
+• 🔍 <strong>Buscar:</strong> Escribe para filtrar skills (ej: react, python, docker)<br>
+• ✅ <strong>Seleccionar:</strong> Click en múltiples skills para asociarlos al proyecto<br>
+• 📁 <strong>Categorías:</strong> Skills organizados por categorías para fácil navegación<br>
+• ⚡ <strong>Acciones rápidas:</strong> Botones para seleccionar/limpiar rápidamente<br>
+• 👁️ <strong>Estado:</strong> ✅ = activo, ❌ = inactivo<br>
 <br>
-📝 Tip: Usa skills específicos para mejor organización (ej: React, Node.js, PostgreSQL)
+💡 <strong>Tips:</strong><br>
+• Si no encuentras una tecnología, créala en la sección "Habilidades"<br>
+• Los skills seleccionados aparecerán automáticamente en el frontend<br>
+• Usa el filtro de búsqueda para encontrar rápidamente lo que necesitas
             """
         }
     }
