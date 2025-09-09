@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.sessions import SessionMiddleware
@@ -30,6 +31,7 @@ from app.middleware.performance import (
     CompressionMiddleware,
     PerformanceMonitoringMiddleware,
 )
+from app.middleware.proxy import ProxyHeadersMiddleware
 from app.middleware.security import (
     InputSanitizationMiddleware,
     RateLimitingMiddleware,
@@ -101,6 +103,13 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan,
 )
+
+# Add proxy middleware for HTTPS handling (must be first)
+if settings.is_production:
+    # Handle proxy headers for correct HTTPS detection
+    app.add_middleware(ProxyHeadersMiddleware)
+    # Trust proxy headers
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # Add session middleware for admin authentication (before CORS)
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
@@ -174,13 +183,62 @@ if os.path.exists(uploads_dir):
 else:
     app_logger.warning(f"Uploads directory not found: {uploads_dir}")
 
-# Mount static files for templates (if they exist) - helps with Coolify deployment
+# Mount static files for templates and admin panel
 templates_static_dir = os.path.join(os.getcwd(), "templates", "static")
 if os.path.exists(templates_static_dir):
     app.mount("/static", StaticFiles(directory=templates_static_dir), name="static")
     app_logger.info(
         f"Template static files mounted at /static -> {templates_static_dir}"
     )
+
+# Mount SQLAdmin static files explicitly for deployment compatibility
+try:
+    import sqladmin
+
+    sqladmin_static_dir = os.path.join(os.path.dirname(sqladmin.__file__), "statics")
+    if os.path.exists(sqladmin_static_dir):
+        app.mount(
+            "/admin/statics",
+            StaticFiles(directory=sqladmin_static_dir),
+            name="admin_static",
+        )
+        app_logger.info(
+            f"SQLAdmin static files mounted at /admin/statics -> {sqladmin_static_dir}"
+        )
+    else:
+        app_logger.warning(
+            f"SQLAdmin static directory not found: {sqladmin_static_dir}"
+        )
+
+    # Also try to mount at /statics for compatibility
+    if os.path.exists(sqladmin_static_dir):
+        app.mount(
+            "/statics",
+            StaticFiles(directory=sqladmin_static_dir),
+            name="admin_static_alt",
+        )
+        app_logger.info("SQLAdmin static files also mounted at /statics (alternative)")
+
+except Exception as e:
+    app_logger.error(f"Could not mount SQLAdmin static files: {e}")
+    # Fallback: try to find sqladmin statics in common locations
+    try:
+        import sys
+
+        for path in sys.path:
+            potential_path = os.path.join(path, "sqladmin", "statics")
+            if os.path.exists(potential_path):
+                app.mount(
+                    "/admin/statics",
+                    StaticFiles(directory=potential_path),
+                    name="admin_static_fallback",
+                )
+                app_logger.info(
+                    f"SQLAdmin static files mounted (fallback): {potential_path}"
+                )
+                break
+    except Exception as fallback_error:
+        app_logger.error(f"Fallback static mounting also failed: {fallback_error}")
 
 
 @app.get("/admin", include_in_schema=False)
@@ -192,11 +250,26 @@ async def admin_auth_check(request: Request):
 
 
 @app.get("/api/v1/debug/cors", include_in_schema=False)
-async def debug_cors():
+async def debug_cors(request: Request):
     """Debug endpoint to check CORS configuration."""
     return {
         "cors_origins": settings.effective_cors_origins,
         "cors_allow_credentials": settings.cors_allow_credentials,
         "environment": settings.environment,
         "debug": settings.debug,
+        "request_headers": dict(request.headers),
+        "cors_config": {
+            "raw_cors_origins": settings.cors_origins,
+            "cors_allow_all_origins": settings.cors_allow_all_origins,
+        },
+    }
+
+
+@app.get("/api/v1/health", include_in_schema=False)
+async def health_check():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "environment": settings.environment,
+        "timestamp": "2025-09-09T17:58:58.654793",
     }
