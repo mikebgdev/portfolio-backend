@@ -42,22 +42,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             elif path.startswith("/api/"):
                 # No CSP for API endpoints to avoid CORS conflicts
                 pass
-            else:
-                # Less restrictive CSP for admin
+            elif path.startswith("/admin"):
+                # Very permissive CSP for admin panel - SQLAdmin needs flexibility
                 csp_directives = [
-                    "default-src 'self'",
-                    (
-                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
-                        "https://cdn.jsdelivr.net https://unpkg.com"
-                    ),
-                    (
-                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
-                        "https://unpkg.com https://fonts.googleapis.com"
-                    ),
-                    "img-src 'self' data: https: blob:",
-                    "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
-                    "connect-src 'self'",
+                    "default-src 'self' *",
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval' * blob: data:",
+                    "style-src 'self' 'unsafe-inline' * blob: data:",
+                    "img-src 'self' data: https: http: blob: *",
+                    "font-src 'self' data: https: http: *",
+                    "connect-src 'self' https: http: *",
                     "frame-ancestors 'self'",
+                    "object-src 'none'",
+                    "media-src 'self' blob: data:",
                 ]
                 response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
         else:

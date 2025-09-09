@@ -189,8 +189,27 @@ try:
     if os.path.exists(sqladmin_static_dir):
         app.mount("/admin/statics", StaticFiles(directory=sqladmin_static_dir), name="admin_static")
         app_logger.info(f"SQLAdmin static files mounted at /admin/statics -> {sqladmin_static_dir}")
+    else:
+        app_logger.warning(f"SQLAdmin static directory not found: {sqladmin_static_dir}")
+        
+    # Also try to mount at /statics for compatibility
+    if os.path.exists(sqladmin_static_dir):
+        app.mount("/statics", StaticFiles(directory=sqladmin_static_dir), name="admin_static_alt")
+        app_logger.info(f"SQLAdmin static files also mounted at /statics (alternative)")
+        
 except Exception as e:
-    app_logger.warning(f"Could not mount SQLAdmin static files: {e}")
+    app_logger.error(f"Could not mount SQLAdmin static files: {e}")
+    # Fallback: try to find sqladmin statics in common locations
+    try:
+        import sys
+        for path in sys.path:
+            potential_path = os.path.join(path, "sqladmin", "statics")
+            if os.path.exists(potential_path):
+                app.mount("/admin/statics", StaticFiles(directory=potential_path), name="admin_static_fallback")
+                app_logger.info(f"SQLAdmin static files mounted (fallback): {potential_path}")
+                break
+    except Exception as fallback_error:
+        app_logger.error(f"Fallback static mounting also failed: {fallback_error}")
 
 
 @app.get("/admin", include_in_schema=False)
