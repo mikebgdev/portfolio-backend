@@ -31,7 +31,7 @@ class EmailService:
         try:
             contact = db.query(Contact).first()
             if contact and contact.sender_name:
-                return contact.sender_name
+                return str(contact.sender_name)
             return "Portfolio Contact"
         except Exception:
             return "Portfolio Contact"
@@ -57,7 +57,7 @@ class EmailService:
             # First try to get from contact database
             contact = db.query(Contact).first()
             if contact and contact.email:
-                return contact.email
+                return str(contact.email)
 
             # Fallback to config username (which is the Gmail account)
             return self.smtp_username
@@ -202,7 +202,7 @@ Fecha: {contact_message.created_at}
 
             # Send email to the contact email from the database
             return await self.send_email(
-                to_email=contact.email,
+                to_email=str(contact.email),
                 subject=subject,
                 text_content=text_content,
                 html_content=html_content,
@@ -297,7 +297,7 @@ Fecha: {contact_message.created_at}
 
             # Send confirmation email to the sender
             return await self.send_email(
-                to_email=contact_message.email,
+                to_email=str(contact_message.email),
                 subject=subject,
                 text_content=text_content,
                 html_content=html_content,

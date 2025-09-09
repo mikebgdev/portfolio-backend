@@ -95,7 +95,7 @@ class ContactMessageService:
             if not message:
                 return None
 
-            message.status = status
+            message.status = status  # type: ignore[assignment]
             db.commit()
             db.refresh(message)
 

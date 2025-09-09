@@ -1,7 +1,7 @@
 """Iconify integration utilities for icon and color management."""
 
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 # Predefined color mappings for popular technologies (hex values)
 TECHNOLOGY_COLORS = {
@@ -210,7 +210,7 @@ def get_suggested_color(icon_name: str) -> Optional[str]:
 
 def get_icon_tooltip_info(
     icon_name: str, color: Optional[str] = None, context: str = "default"
-) -> Dict:
+) -> Dict[str, Any]:
     """
     Get comprehensive tooltip information for an icon.
 
@@ -230,7 +230,7 @@ def get_icon_tooltip_info(
     formatted_color = format_hex_color(color) if color else None
     is_valid_color = bool(formatted_color) if color else True
 
-    tooltip_info = {
+    tooltip_info: Dict[str, Any] = {
         "original_name": icon_name,
         "normalized_name": normalized_icon,
         "suggested_color": suggested_color,
