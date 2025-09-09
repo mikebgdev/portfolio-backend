@@ -12,37 +12,51 @@ from app.utils.iconify import (
     get_suggested_color,
     validate_hex_color,
     normalize_icon_name,
-    search_icons
+    search_icons,
 )
 
 
 class IconifyWidget(TextInput):
     """Custom widget for icon field with suggestions and validation."""
-    
+
     def __call__(self, field, **kwargs):
         # Add custom CSS classes and data attributes
-        kwargs.setdefault('class', 'form-control iconify-field')
-        kwargs.setdefault('data-field-type', 'icon')
-        
+        kwargs.setdefault("class", "form-control iconify-field")
+        kwargs.setdefault("data-field-type", "icon")
+
         # Get tooltip info if field has value
         if field.data:
             tooltip_info = get_icon_tooltip_info(field.data, context="skill")
-            kwargs.setdefault('data-tooltip-info', json.dumps(tooltip_info))
-            
-            if tooltip_info.get('suggested_color'):
-                kwargs.setdefault('data-suggested-color', tooltip_info['suggested_color'])
-        
+            kwargs.setdefault("data-tooltip-info", json.dumps(tooltip_info))
+
+            if tooltip_info.get("suggested_color"):
+                kwargs.setdefault(
+                    "data-suggested-color", tooltip_info["suggested_color"]
+                )
+
         # Add autocomplete suggestions
-        popular_icons = ['python', 'javascript', 'typescript', 'react', 'vue', 'angular', 
-                        'docker', 'kubernetes', 'nodejs', 'code', 'database', 'server']
-        kwargs.setdefault('data-suggestions', json.dumps(popular_icons))
-        
+        popular_icons = [
+            "python",
+            "javascript",
+            "typescript",
+            "react",
+            "vue",
+            "angular",
+            "docker",
+            "kubernetes",
+            "nodejs",
+            "code",
+            "database",
+            "server",
+        ]
+        kwargs.setdefault("data-suggestions", json.dumps(popular_icons))
+
         # Add the tooltip content
         tooltip_text = self._generate_tooltip_text()
-        kwargs.setdefault('title', tooltip_text)
-        
+        kwargs.setdefault("title", tooltip_text)
+
         return super().__call__(field, **kwargs)
-    
+
     def _generate_tooltip_text(self) -> str:
         """Generate comprehensive tooltip text for icons."""
         return """🔧 TECNOLOGÍAS POPULARES:
@@ -63,35 +77,35 @@ code, database, server, settings, briefcase, graduation-cap, mail, phone
 
 class ColorWidget(TextInput):
     """Custom widget for color field with validation and suggestions."""
-    
+
     def __call__(self, field, **kwargs):
-        # Add custom CSS classes and data attributes  
-        kwargs.setdefault('class', 'form-control color-field')
-        kwargs.setdefault('data-field-type', 'color')
-        
+        # Add custom CSS classes and data attributes
+        kwargs.setdefault("class", "form-control color-field")
+        kwargs.setdefault("data-field-type", "color")
+
         # Validate color if field has value
         if field.data:
             is_valid = True
             formatted_color = field.data
-            
-            if field.data.startswith('#'):
+
+            if field.data.startswith("#"):
                 is_valid = validate_hex_color(field.data)
                 if is_valid:
                     formatted_color = field.data.upper()
-            
-            kwargs.setdefault('data-is-valid', str(is_valid).lower())
-            kwargs.setdefault('data-formatted-color', formatted_color)
-        
+
+            kwargs.setdefault("data-is-valid", str(is_valid).lower())
+            kwargs.setdefault("data-formatted-color", formatted_color)
+
         # Add color picker attributes
-        if field.data and field.data.startswith('#') and validate_hex_color(field.data):
-            kwargs.setdefault('data-color-preview', field.data)
-            
+        if field.data and field.data.startswith("#") and validate_hex_color(field.data):
+            kwargs.setdefault("data-color-preview", field.data)
+
         # Add the tooltip content
         tooltip_text = self._generate_tooltip_text()
-        kwargs.setdefault('title', tooltip_text)
-        
+        kwargs.setdefault("title", tooltip_text)
+
         return super().__call__(field, **kwargs)
-    
+
     def _generate_tooltip_text(self) -> str:
         """Generate comprehensive tooltip text for colors."""
         return """🎨 FORMATOS DE COLOR VÁLIDOS:
@@ -121,18 +135,20 @@ Docker: #2496ed | Node.js: #339933 | PHP: #777bb4
 
 class IconifyField(StringField):
     """Custom field for Iconify icons with enhanced validation and suggestions."""
-    
+
     widget = IconifyWidget()
-    
+
     def __init__(self, label=None, validators=None, **kwargs):
         # Add helpful placeholder and description
-        kwargs.setdefault('render_kw', {})
-        kwargs['render_kw'].setdefault('placeholder', 'Ej: python, react, docker, code')
-        kwargs.setdefault('description', 
-            'Nombre del icono de Iconify. Ejemplos: python, javascript, react, docker, code, settings')
-        
+        kwargs.setdefault("render_kw", {})
+        kwargs["render_kw"].setdefault("placeholder", "Ej: python, react, docker, code")
+        kwargs.setdefault(
+            "description",
+            "Nombre del icono de Iconify. Ejemplos: python, javascript, react, docker, code, settings",
+        )
+
         super().__init__(label, validators, **kwargs)
-    
+
     def process_data(self, value):
         """Normalize icon name when processing data."""
         if value:
@@ -145,21 +161,25 @@ class IconifyField(StringField):
 
 class ColorField(StringField):
     """Custom field for colors with enhanced validation and preview."""
-    
+
     widget = ColorWidget()
-    
+
     def __init__(self, label=None, validators=None, **kwargs):
         # Add helpful placeholder and description
-        kwargs.setdefault('render_kw', {})
-        kwargs['render_kw'].setdefault('placeholder', 'Ej: #61dafb, #f7df1e, text-blue-500')
-        kwargs.setdefault('description', 
-            'Color en formato hex (#FF0000), clase Tailwind (text-blue-500), o nombre CSS (red)')
-        
+        kwargs.setdefault("render_kw", {})
+        kwargs["render_kw"].setdefault(
+            "placeholder", "Ej: #61dafb, #f7df1e, text-blue-500"
+        )
+        kwargs.setdefault(
+            "description",
+            "Color en formato hex (#FF0000), clase Tailwind (text-blue-500), o nombre CSS (red)",
+        )
+
         super().__init__(label, validators, **kwargs)
-    
+
     def process_data(self, value):
         """Format color when processing data."""
-        if value and value.startswith('#'):
+        if value and value.startswith("#"):
             # Normalize hex color to uppercase
             if validate_hex_color(value):
                 self.data = value.upper()
@@ -171,35 +191,35 @@ class ColorField(StringField):
 
 class SmartIconColorFieldSet:
     """Utility class to create related icon and color fields with smart suggestions."""
-    
+
     @staticmethod
-    def create_fields(icon_field_name='icon_name', color_field_name='color'):
+    def create_fields(icon_field_name="icon_name", color_field_name="color"):
         """Create related icon and color fields with smart integration."""
-        
+
         # Enhanced icon field with color suggestions
         icon_field = IconifyField(
-            label='Icono',
-            description='Nombre del icono. Al elegir una tecnología popular, se sugerirá automáticamente el color oficial.',
+            label="Icono",
+            description="Nombre del icono. Al elegir una tecnología popular, se sugerirá automáticamente el color oficial.",
             render_kw={
-                'placeholder': 'Ej: python, react, docker, javascript',
-                'data-field-type': 'icon',
-                'data-related-color-field': color_field_name,
-                'class': 'form-control iconify-icon-field'
-            }
+                "placeholder": "Ej: python, react, docker, javascript",
+                "data-field-type": "icon",
+                "data-related-color-field": color_field_name,
+                "class": "form-control iconify-icon-field",
+            },
         )
-        
-        # Enhanced color field with icon integration  
+
+        # Enhanced color field with icon integration
         color_field = ColorField(
-            label='Color',
-            description='Color del icono. Se sugiere automáticamente para tecnologías populares.',
+            label="Color",
+            description="Color del icono. Se sugiere automáticamente para tecnologías populares.",
             render_kw={
-                'placeholder': 'Ej: #61dafb, text-blue-500, red',
-                'data-field-type': 'color',
-                'data-related-icon-field': icon_field_name,
-                'class': 'form-control iconify-color-field'
-            }
+                "placeholder": "Ej: #61dafb, text-blue-500, red",
+                "data-field-type": "color",
+                "data-related-icon-field": icon_field_name,
+                "class": "form-control iconify-color-field",
+            },
         )
-        
+
         return icon_field, color_field
 
 

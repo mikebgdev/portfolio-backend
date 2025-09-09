@@ -6,7 +6,11 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
-from app.utils.iconify import get_icon_tooltip_info, validate_hex_color, format_hex_color
+from app.utils.iconify import (
+    get_icon_tooltip_info,
+    validate_hex_color,
+    format_hex_color,
+)
 
 
 class SkillCategoryBase(BaseModel):
@@ -85,25 +89,23 @@ class SkillBase(BaseModel):
         if v:
             if not v.strip():
                 return None
-            
+
             stripped_v = v.strip()
-            
+
             # Check if it's a hex color
-            if stripped_v.startswith('#'):
+            if stripped_v.startswith("#"):
                 if not validate_hex_color(stripped_v):
                     raise ValueError(
-                        'Invalid hex color format. Use format like #FF0000 or #F00'
+                        "Invalid hex color format. Use format like #FF0000 or #F00"
                     )
                 return format_hex_color(stripped_v)
-            
+
             # Check if it's a Tailwind CSS class or valid CSS color name
-            if not re.match(
-                r"^(text-\w+(-\d+)?|\w+)$", stripped_v
-            ):
+            if not re.match(r"^(text-\w+(-\d+)?|\w+)$", stripped_v):
                 raise ValueError(
-                    'Invalid color format. Use hex colors (#FF0000), Tailwind classes (text-blue-500), or CSS color names'
+                    "Invalid color format. Use hex colors (#FF0000), Tailwind classes (text-blue-500), or CSS color names"
                 )
-                
+
         return v.strip() if v else None
 
 

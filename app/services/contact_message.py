@@ -28,7 +28,7 @@ class ContactMessageService:
                 subject=message_data.subject,
                 message=message_data.message,
                 phone=message_data.phone,
-                status="new"
+                status="new",
             )
 
             db.add(contact_message)
@@ -44,13 +44,13 @@ class ContactMessageService:
             try:
                 # Import here to avoid circular imports
                 from app.services.email import email_service
-                
+
                 # Send notification to admin (non-blocking)
                 await email_service.send_contact_notification(db, contact_message)
-                
+
                 # Send confirmation to user (non-blocking)
                 await email_service.send_contact_confirmation(contact_message, language)
-                
+
             except Exception as e:
                 # Email failure should not prevent the contact message from being created
                 logger.error(f"Failed to send email notifications: {str(e)}")
@@ -58,7 +58,7 @@ class ContactMessageService:
             return ContactMessageResponse(
                 success=True,
                 message="Mensaje enviado correctamente",
-                id=contact_message.message_id
+                id=contact_message.message_id,
             )
 
         except SQLAlchemyError as e:
@@ -71,7 +71,9 @@ class ContactMessageService:
     ) -> Optional[ContactMessage]:
         """Get a contact message by ID."""
         try:
-            return db.query(ContactMessage).filter(ContactMessage.id == message_id).first()
+            return (
+                db.query(ContactMessage).filter(ContactMessage.id == message_id).first()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Database error retrieving contact message: {str(e)}")
             raise DatabaseError(f"Database error: {str(e)}")
@@ -84,9 +86,9 @@ class ContactMessageService:
             valid_statuses = ["new", "read", "replied", "archived"]
             if status not in valid_statuses:
                 raise ValidationError(
-                    "status", 
-                    status, 
-                    f"Status must be one of: {', '.join(valid_statuses)}"
+                    "status",
+                    status,
+                    f"Status must be one of: {', '.join(valid_statuses)}",
                 )
 
             message = self.get_contact_message(db, message_id)

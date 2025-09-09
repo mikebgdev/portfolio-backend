@@ -41,7 +41,11 @@ class EmailService:
         try:
             contact = db.query(Contact).first()
             if contact:
-                domain = self.smtp_username.split('@')[-1] if '@' in self.smtp_username else "Portfolio"
+                domain = (
+                    self.smtp_username.split("@")[-1]
+                    if "@" in self.smtp_username
+                    else "Portfolio"
+                )
                 return f"Nuevo mensaje de contacto - {domain}"
             return "Nuevo mensaje de contacto - Portfolio"
         except Exception:
@@ -54,7 +58,7 @@ class EmailService:
             contact = db.query(Contact).first()
             if contact and contact.email:
                 return contact.email
-            
+
             # Fallback to config username (which is the Gmail account)
             return self.smtp_username
         except Exception:
@@ -96,13 +100,13 @@ class EmailService:
             # Create message
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
-            
+
             # Gmail SMTP limitation: Gmail will override the From field with the authenticated account
             # We use the Gmail account as From and set Reply-To for the desired contact email
             gmail_from = f"{from_name} <{self.smtp_username}>"
             message["From"] = gmail_from
             message["To"] = to_email
-            
+
             # If the desired from_email is different from Gmail account, set Reply-To
             if from_email and from_email.lower() != self.smtp_username.lower():
                 message["Reply-To"] = f"{from_name} <{from_email}>"
@@ -127,7 +131,9 @@ class EmailService:
                 password=self.smtp_password,
             )
 
-            logger.info(f"Email sent successfully via Gmail to {to_email} (From: {gmail_from})")
+            logger.info(
+                f"Email sent successfully via Gmail to {to_email} (From: {gmail_from})"
+            )
             return True
 
         except Exception as e:
@@ -147,7 +153,7 @@ class EmailService:
 
             # Prepare email content with dynamic subject
             subject = self._get_dynamic_subject(db)
-            
+
             # Text content
             text_content = f"""
 Nuevo mensaje de contacto recibido:
@@ -213,10 +219,11 @@ Fecha: {contact_message.created_at}
         try:
             # Get sender name from database
             from app.database import SessionLocal
+
             db_temp = SessionLocal()
             sender_name = self._get_dynamic_from_name(db_temp)
             db_temp.close()
-            
+
             # Language-specific content
             if language == "es":
                 subject = "Confirmación - Hemos recibido tu mensaje"
@@ -236,12 +243,18 @@ Fecha: {contact_message.created_at}
                 subject_label = "Subject"
                 no_subject = "No subject"
                 signature = f"Best regards,<br><strong>{sender_name}</strong>"
-                auto_message = "This is an automatic message. Please do not reply to this email."
+                auto_message = (
+                    "This is an automatic message. Please do not reply to this email."
+                )
                 html_title = "Thank you for your message!"
-            
+
             # Format signature for text content
-            text_signature = signature.replace('<br>', '\n').replace('<strong>', '').replace('</strong>', '')
-            
+            text_signature = (
+                signature.replace("<br>", "\n")
+                .replace("<strong>", "")
+                .replace("</strong>", "")
+            )
+
             # Text content
             text_content = f"""
 {greeting},
@@ -255,7 +268,7 @@ Fecha: {contact_message.created_at}
 {text_signature}
             """.strip()
 
-            # HTML content  
+            # HTML content
             html_content = f"""
             <html>
                 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

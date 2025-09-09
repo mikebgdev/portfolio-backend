@@ -60,9 +60,7 @@ class ContactMessageRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255, description="Sender's name")
     email: str = Field(..., description="Sender's email address")
-    subject: Optional[str] = Field(
-        None, max_length=500, description="Message subject"
-    )
+    subject: Optional[str] = Field(None, max_length=500, description="Message subject")
     message: str = Field(
         ..., min_length=1, max_length=5000, description="Message content"
     )
@@ -74,7 +72,7 @@ class ContactMessageRequest(BaseModel):
     @classmethod
     def validate_email(cls, v: str) -> str:
         """Validate email format."""
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v):
             raise ValueError("Invalid email format")
         return v.lower().strip()
@@ -97,7 +95,7 @@ class ContactMessageRequest(BaseModel):
         """Validate and clean phone number."""
         if v:
             # Remove common phone formatting characters
-            cleaned = re.sub(r'[^\d+\-\(\)\s]', '', v.strip())
+            cleaned = re.sub(r"[^\d+\-\(\)\s]", "", v.strip())
             return cleaned if cleaned else None
         return v
 

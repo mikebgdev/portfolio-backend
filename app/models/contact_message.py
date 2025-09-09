@@ -33,7 +33,9 @@ class ContactMessage(Base):
 
     def __str__(self):
         """String representation for admin interface."""
-        return f"Message from {self.name} ({self.email}) - {self.subject or 'No subject'}"
+        return (
+            f"Message from {self.name} ({self.email}) - {self.subject or 'No subject'}"
+        )
 
     @property
     def message_id(self) -> str:

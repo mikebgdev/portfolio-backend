@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.deps.auth import get_db
-from app.schemas.contact import ContactMessageRequest, ContactMessageResponse, ContactResponse
+from app.schemas.contact import (
+    ContactMessageRequest,
+    ContactMessageResponse,
+    ContactResponse,
+)
 from app.services.contact import contact_service
 from app.services.contact_message import contact_message_service
 from app.utils.validation import validate_language
@@ -34,7 +38,9 @@ async def get_contact(
     return response
 
 
-@router.post("/send/", response_model=ContactMessageResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/send/", response_model=ContactMessageResponse, status_code=status.HTTP_201_CREATED
+)
 async def send_contact_message(
     message_data: ContactMessageRequest,
     db: Session = Depends(get_db),
@@ -54,12 +60,14 @@ async def send_contact_message(
 
         # Validate language
         lang = validate_language(lang)
-        
+
         # Create the contact message
-        response = await contact_message_service.create_contact_message(db, message_data, lang)
-        
+        response = await contact_message_service.create_contact_message(
+            db, message_data, lang
+        )
+
         return response
-        
+
     except HTTPException:
         # Re-raise HTTP exceptions to preserve status codes
         raise
