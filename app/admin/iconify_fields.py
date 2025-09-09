@@ -1,6 +1,7 @@
 """Custom fields for Iconify icons and colors with validation and suggestions."""
 
 import json
+
 from wtforms import StringField
 from wtforms.widgets import TextInput
 
