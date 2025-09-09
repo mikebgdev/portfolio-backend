@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
-from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
@@ -218,7 +217,7 @@ try:
             StaticFiles(directory=sqladmin_static_dir),
             name="admin_static_alt",
         )
-        app_logger.info(f"SQLAdmin static files also mounted at /statics (alternative)")
+        app_logger.info("SQLAdmin static files also mounted at /statics (alternative)")
 
 except Exception as e:
     app_logger.error(f"Could not mount SQLAdmin static files: {e}")
