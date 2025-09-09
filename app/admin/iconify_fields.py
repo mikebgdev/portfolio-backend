@@ -10,9 +10,9 @@ from wtforms.widgets import TextInput
 from app.utils.iconify import (
     get_icon_tooltip_info,
     get_suggested_color,
-    validate_hex_color,
     normalize_icon_name,
     search_icons,
+    validate_hex_color,
 )
 
 

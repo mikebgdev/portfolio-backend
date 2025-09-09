@@ -3,7 +3,6 @@
 import re
 from typing import Dict, List, Optional, Tuple
 
-
 # Predefined color mappings for popular technologies (hex values)
 TECHNOLOGY_COLORS = {
     # Frontend Technologies

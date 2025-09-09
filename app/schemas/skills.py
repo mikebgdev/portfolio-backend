@@ -7,9 +7,9 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, validator
 
 from app.utils.iconify import (
+    format_hex_color,
     get_icon_tooltip_info,
     validate_hex_color,
-    format_hex_color,
 )
 
 
