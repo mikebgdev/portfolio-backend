@@ -76,15 +76,15 @@ class Settings(BaseSettings):
     def effective_cors_origins(self) -> List[str]:
         """Get CORS origins based on environment"""
         if self.is_production:
-            # In production, if no specific origins are set, be permissive but log warning
+            # In production, if no specific origins are set, include the frontend domain
             if not self.cors_origins or len(self.cors_origins) == 0:
                 import logging
 
                 logger = logging.getLogger("portfolio.config")
                 logger.warning(
-                    "No CORS origins configured for production, allowing all origins"
+                    "No CORS origins configured for production, using frontend domain"
                 )
-                return ["*"]
+                return ["https://portfolio-frontend.mikebg.dev"]
 
             # In production, allow wildcard if explicitly set
             if "*" in self.cors_origins or self.cors_allow_all_origins:
@@ -94,7 +94,17 @@ class Settings(BaseSettings):
                 logger.warning("Wildcard CORS origins allowed in production")
                 return ["*"]
 
-            return self.cors_origins
+            # Always ensure the frontend domain is included in production
+            production_origins = self.cors_origins.copy()
+            frontend_domain = "https://portfolio-frontend.mikebg.dev"
+            if frontend_domain not in production_origins:
+                production_origins.append(frontend_domain)
+                import logging
+
+                logger = logging.getLogger("portfolio.config")
+                logger.info(f"Added frontend domain to CORS origins: {frontend_domain}")
+
+            return production_origins
         else:
             # Check if wildcard is explicitly allowed
             if self.cors_allow_all_origins:
