@@ -288,24 +288,29 @@ class SkillAdmin(ModelView, model=Skill):
         "icon_name": {
             "description": """
 💡 <strong>Iconos de Tecnologías Populares:</strong><br>
-Frontend: <code>javascript</code>, <code>typescript</code>, <code>react</code>, <code>vue</code>, <code>angular</code><br>
-Backend: <code>python</code>, <code>nodejs</code>, <code>php</code>, <code>java</code>, <code>csharp</code><br>
+Frontend: <code>javascript</code>, <code>typescript</code>, <code>react</code>, "
+                   "<code>vue</code>, <code>angular</code><br>
+Backend: <code>python</code>, <code>nodejs</code>, <code>php</code>, "
+                   "<code>java</code>, <code>csharp</code><br>
 DevOps: <code>docker</code>, <code>kubernetes</code>, <code>git</code>, <code>jenkins</code><br>
 UI: <code>code</code>, <code>database</code>, <code>server</code>, <code>settings</code><br>
 <br>
-🔍 <a href="/api/v1/iconify/search?q=python" target="_blank">Buscar iconos</a> | 
+🔍 <a href="/api/v1/iconify/search?q=python" target="_blank">Buscar iconos</a> "
+               "|
 📚 <a href="/api/v1/iconify/categories" target="_blank">Ver categorías</a>
-            """
+            """  # noqa: E501
         },
         "color": {
             "description": """
 🎨 <strong>Formatos de Color Soportados:</strong><br>
-• <strong>HEX:</strong> <code>#61dafb</code> (React), <code>#f7df1e</code> (JavaScript), <code>#3776ab</code> (Python)<br>
+• <strong>HEX:</strong> <code>#61dafb</code> (React), <code>#f7df1e</code> "
+                   "(JavaScript), <code>#3776ab</code> (Python)<br>
 • <strong>Tailwind:</strong> <code>text-blue-500</code>, <code>text-red-600</code><br>
 • <strong>CSS:</strong> <code>red</code>, <code>blue</code>, <code>green</code><br>
 <br>
 💡 Tip: El color se sugiere automáticamente al elegir tecnologías populares<br>
-✅ <a href="/api/v1/iconify/validate-color?color=%23ff0000" target="_blank">Validar color</a>
+✅ <a href="/api/v1/iconify/validate-color?color=%23ff0000" "
+                   "target="_blank">Validar color</a>
             """
         },
     }

@@ -101,13 +101,16 @@ class EmailService:
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
 
-            # Gmail SMTP limitation: Gmail will override the From field with the authenticated account
-            # We use the Gmail account as From and set Reply-To for the desired contact email
+            # Gmail SMTP limitation: Gmail will override the From field with the
+            # authenticated account
+            # We use the Gmail account as From and set Reply-To for the desired
+            # contact email
             gmail_from = f"{from_name} <{self.smtp_username}>"
             message["From"] = gmail_from
             message["To"] = to_email
 
-            # If the desired from_email is different from Gmail account, set Reply-To
+            # If the desired from_email is different from Gmail account,
+            # set Reply-To
             if from_email and from_email.lower() != self.smtp_username.lower():
                 message["Reply-To"] = f"{from_name} <{from_email}>"
                 logger.info(f"Set Reply-To header: {from_name} <{from_email}>")
@@ -176,21 +179,20 @@ Fecha: {contact_message.created_at}
             <html>
                 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">Nuevo mensaje de contacto</h2>
-                    
-                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">  # noqa: E501
                         <h3 style="color: #495057; margin-top: 0;">Información del contacto</h3>
                         <p><strong>Nombre:</strong> {contact_message.name}</p>
-                        <p><strong>Email:</strong> <a href="mailto:{contact_message.email}">{contact_message.email}</a></p>
-                        <p><strong>Teléfono:</strong> {contact_message.phone or 'No proporcionado'}</p>
+                        <p><strong>Email:</strong> <a href="mailto:{contact_message.email}">{contact_message.email}</a></p>  # noqa: E501
+                        <p><strong>Teléfono:</strong> {contact_message.phone or 'No proporcionado'}</p>  # noqa: E501
                         <p><strong>Asunto:</strong> {contact_message.subject or 'Sin asunto'}</p>
                     </div>
-                    
-                    <div style="background-color: #e9ecef; padding: 20px; border-radius: 8px; margin: 20px 0;">
+
+                    <div style="background-color: #e9ecef; padding: 20px; border-radius: 8px; margin: 20px 0;">  # noqa: E501
                         <h3 style="color: #495057; margin-top: 0;">Mensaje</h3>
                         <p style="white-space: pre-wrap;">{contact_message.message}</p>
                     </div>
-                    
-                    <div style="color: #6c757d; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+
+                    <div style="color: #6c757d; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">  # noqa: E501
                         <p>ID del mensaje: {contact_message.message_id}</p>
                         <p>Fecha: {contact_message.created_at}</p>
                     </div>
@@ -228,17 +230,17 @@ Fecha: {contact_message.created_at}
             if language == "es":
                 subject = "Confirmación - Hemos recibido tu mensaje"
                 greeting = f"Hola {contact_message.name}"
-                thanks_message = "Gracias por contactarnos. Hemos recibido tu mensaje y te responderemos lo antes posible."
+                thanks_message = "Gracias por contactarnos. Hemos recibido tu mensaje y te responderemos lo antes posible."  # noqa: E501
                 your_message_label = "Tu mensaje"
                 subject_label = "Asunto"
                 no_subject = "Sin asunto"
                 signature = f"Saludos,<br><strong>{sender_name}</strong>"
-                auto_message = "Este es un mensaje automático. Por favor, no responder a este email."
+                auto_message = "Este es un mensaje automático. Por favor, no responder a este email."  # noqa: E501
                 html_title = "¡Gracias por tu mensaje!"
             else:
                 subject = "Confirmation - We have received your message"
                 greeting = f"Hello {contact_message.name}"
-                thanks_message = "Thank you for contacting us. We have received your message and will respond as soon as possible."
+                thanks_message = "Thank you for contacting us. We have received your message and will respond as soon as possible."  # noqa: E501
                 your_message_label = "Your message"
                 subject_label = "Subject"
                 no_subject = "No subject"
@@ -273,20 +275,20 @@ Fecha: {contact_message.created_at}
             <html>
                 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">{html_title}</h2>
-                    
+
                     <p>{greeting},</p>
-                    
+
                     <p>{thanks_message}</p>
-                    
-                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">  # noqa: E501
                         <h3 style="color: #495057; margin-top: 0;">{your_message_label}</h3>
                         <p><strong>{subject_label}:</strong> {contact_message.subject or no_subject}</p>
                         <p style="white-space: pre-wrap;">{contact_message.message}</p>
                     </div>
-                    
+
                     <p>{signature}</p>
-                    
-                    <div style="color: #6c757d; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+
+                    <div style="color: #6c757d; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">  # noqa: E501
                         <p>{auto_message}</p>
                     </div>
                 </body>

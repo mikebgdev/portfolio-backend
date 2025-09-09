@@ -1,7 +1,7 @@
 """Iconify integration utilities for icon and color management."""
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 # Predefined color mappings for popular technologies (hex values)
 TECHNOLOGY_COLORS = {
@@ -257,7 +257,8 @@ def get_icon_tooltip_info(
 
     if normalized_icon and normalized_icon in TECHNOLOGY_COLORS:
         tooltip_info["recommendations"].append(
-            f"Popular technology icon detected. Recommended color: {TECHNOLOGY_COLORS[normalized_icon]}"
+            f"Popular technology icon detected. "
+            f"Recommended color: {TECHNOLOGY_COLORS[normalized_icon]}"
         )
 
     return tooltip_info

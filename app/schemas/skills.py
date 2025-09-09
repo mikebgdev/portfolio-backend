@@ -103,7 +103,8 @@ class SkillBase(BaseModel):
             # Check if it's a Tailwind CSS class or valid CSS color name
             if not re.match(r"^(text-\w+(-\d+)?|\w+)$", stripped_v):
                 raise ValueError(
-                    "Invalid color format. Use hex colors (#FF0000), Tailwind classes (text-blue-500), or CSS color names"
+                    "Invalid color format. Use hex colors (#FF0000), Tailwind classes "
+                    "(text-blue-500), or CSS color names"
                 )
 
         return v.strip() if v else None

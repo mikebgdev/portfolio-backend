@@ -1,17 +1,12 @@
 """Custom fields for Iconify icons and colors with validation and suggestions."""
 
 import json
-from typing import Any, Dict, Optional
-
-from starlette.requests import Request
-from wtforms import Field, StringField
+from wtforms import StringField
 from wtforms.widgets import TextInput
 
 from app.utils.iconify import (
     get_icon_tooltip_info,
-    get_suggested_color,
     normalize_icon_name,
-    search_icons,
     validate_hex_color,
 )
 
@@ -61,7 +56,7 @@ class IconifyWidget(TextInput):
         """Generate comprehensive tooltip text for icons."""
         return """🔧 TECNOLOGÍAS POPULARES:
 • Frontend: javascript, typescript, react, vue, angular, svelte
-• Backend: python, nodejs, php, java, csharp, go, rust  
+• Backend: python, nodejs, php, java, csharp, go, rust
 • DevOps: docker, kubernetes, git, jenkins
 • Databases: mysql, postgresql, mongodb, redis
 • Tools: vscode, figma, notion, obsidian
@@ -112,7 +107,7 @@ class ColorWidget(TextInput):
 
 🔹 HEX COLORS (Recomendado):
 • #FF0000 o #F00 (rojo)
-• #61dafb (React blue)  
+• #61dafb (React blue)
 • #f7df1e (JavaScript yellow)
 • #3776ab (Python blue)
 
@@ -144,7 +139,8 @@ class IconifyField(StringField):
         kwargs["render_kw"].setdefault("placeholder", "Ej: python, react, docker, code")
         kwargs.setdefault(
             "description",
-            "Nombre del icono de Iconify. Ejemplos: python, javascript, react, docker, code, settings",
+            "Nombre del icono de Iconify. Ejemplos: python, javascript, "
+            "react, docker, code, settings",
         )
 
         super().__init__(label, validators, **kwargs)
@@ -172,7 +168,8 @@ class ColorField(StringField):
         )
         kwargs.setdefault(
             "description",
-            "Color en formato hex (#FF0000), clase Tailwind (text-blue-500), o nombre CSS (red)",
+            "Color en formato hex (#FF0000), clase Tailwind "
+            "(text-blue-500), o nombre CSS (red)",
         )
 
         super().__init__(label, validators, **kwargs)
@@ -199,7 +196,8 @@ class SmartIconColorFieldSet:
         # Enhanced icon field with color suggestions
         icon_field = IconifyField(
             label="Icono",
-            description="Nombre del icono. Al elegir una tecnología popular, se sugerirá automáticamente el color oficial.",
+            description="Nombre del icono. Al elegir una tecnología popular, "
+            "se sugerirá automáticamente el color oficial.",
             render_kw={
                 "placeholder": "Ej: python, react, docker, javascript",
                 "data-field-type": "icon",
@@ -211,7 +209,8 @@ class SmartIconColorFieldSet:
         # Enhanced color field with icon integration
         color_field = ColorField(
             label="Color",
-            description="Color del icono. Se sugiere automáticamente para tecnologías populares.",
+            description="Color del icono. Se sugiere automáticamente para "
+            "tecnologías populares.",
             render_kw={
                 "placeholder": "Ej: #61dafb, text-blue-500, red",
                 "data-field-type": "color",
@@ -233,7 +232,7 @@ class IconifyAdminHelper {
         this.initColorFields();
         this.setupFieldRelationships();
     }
-    
+
     initIconFields() {
         document.querySelectorAll('.iconify-icon-field').forEach(field => {
             // Add change event listener
@@ -243,30 +242,32 @@ class IconifyAdminHelper {
                     await this.updateIconSuggestions(field, iconName);
                 }
             });
-            
+
             // Add suggestions dropdown
             this.addIconSuggestions(field);
         });
     }
-    
+
     initColorFields() {
         document.querySelectorAll('.iconify-color-field').forEach(field => {
             // Add real-time validation
             field.addEventListener('input', (e) => {
                 this.validateColor(field, e.target.value);
             });
-            
+
             // Add color preview
             this.addColorPreview(field);
         });
     }
-    
+
     async updateIconSuggestions(iconField, iconName) {
         try {
             // Get tooltip info
-            const response = await fetch(`/api/v1/iconify/tooltip?icon_name=${iconName}&context=skill`);
+            const response = await fetch(
+                `/api/v1/iconify/tooltip?icon_name=${iconName}&context=skill`
+            );
             const data = await response.json();
-            
+
             // Update related color field if suggested color exists
             const colorFieldName = iconField.dataset.relatedColorField;
             if (colorFieldName && data.suggested_color) {
@@ -276,28 +277,28 @@ class IconifyAdminHelper {
                     this.validateColor(colorField, data.suggested_color);
                 }
             }
-            
+
             // Show recommendations in tooltip
             if (data.recommendations?.length > 0) {
                 iconField.title = `✅ ${data.recommendations.join('\\n')}`;
             }
-            
+
         } catch (error) {
             console.warn('Error fetching icon suggestions:', error);
         }
     }
-    
+
     validateColor(colorField, colorValue) {
         if (!colorValue) {
             colorField.classList.remove('is-valid', 'is-invalid');
             return;
         }
-        
+
         // Simple hex validation
         const isHex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(colorValue);
         const isTailwind = /^text-\\w+(-\\d+)?$/.test(colorValue);
         const isCssColor = /^[a-z]+$/i.test(colorValue);
-        
+
         if (isHex || isTailwind || isCssColor) {
             colorField.classList.remove('is-invalid');
             colorField.classList.add('is-valid');
@@ -305,60 +306,60 @@ class IconifyAdminHelper {
             colorField.classList.remove('is-valid');
             colorField.classList.add('is-invalid');
         }
-        
+
         // Update color preview
         this.updateColorPreview(colorField, colorValue);
     }
-    
+
     addColorPreview(colorField) {
         const preview = document.createElement('div');
         preview.className = 'color-preview';
         preview.style.cssText = `
-            width: 20px; height: 20px; border: 1px solid #ccc; 
+            width: 20px; height: 20px; border: 1px solid #ccc;
             display: inline-block; margin-left: 8px; border-radius: 3px;
             vertical-align: middle;
         `;
         colorField.parentNode.appendChild(preview);
-        
+
         // Initial preview
         if (colorField.value) {
             this.updateColorPreview(colorField, colorField.value);
         }
     }
-    
+
     updateColorPreview(colorField, colorValue) {
         const preview = colorField.parentNode.querySelector('.color-preview');
         if (preview && colorValue.startsWith('#')) {
             preview.style.backgroundColor = colorValue;
         }
     }
-    
+
     addIconSuggestions(iconField) {
         // This would add a suggestions dropdown, but for now we rely on browser autocomplete
         iconField.setAttribute('list', 'icon-suggestions');
-        
+
         // Create datalist if it doesn't exist
         let datalist = document.getElementById('icon-suggestions');
         if (!datalist) {
             datalist = document.createElement('datalist');
             datalist.id = 'icon-suggestions';
-            
+
             const suggestions = [
                 'python', 'javascript', 'typescript', 'react', 'vue', 'angular',
                 'docker', 'kubernetes', 'nodejs', 'code', 'database', 'server',
                 'figma', 'vscode', 'notion', 'obsidian', 'github', 'gitlab'
             ];
-            
+
             suggestions.forEach(suggestion => {
                 const option = document.createElement('option');
                 option.value = suggestion;
                 datalist.appendChild(option);
             });
-            
+
             document.body.appendChild(datalist);
         }
     }
-    
+
     setupFieldRelationships() {
         // Additional setup for related fields can go here
         console.log('Iconify admin helper initialized');
