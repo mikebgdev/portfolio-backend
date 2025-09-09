@@ -8,8 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
-from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
@@ -195,28 +195,48 @@ if os.path.exists(templates_static_dir):
 # Mount SQLAdmin static files explicitly for deployment compatibility
 try:
     import sqladmin
+
     sqladmin_static_dir = os.path.join(os.path.dirname(sqladmin.__file__), "statics")
     if os.path.exists(sqladmin_static_dir):
-        app.mount("/admin/statics", StaticFiles(directory=sqladmin_static_dir), name="admin_static")
-        app_logger.info(f"SQLAdmin static files mounted at /admin/statics -> {sqladmin_static_dir}")
+        app.mount(
+            "/admin/statics",
+            StaticFiles(directory=sqladmin_static_dir),
+            name="admin_static",
+        )
+        app_logger.info(
+            f"SQLAdmin static files mounted at /admin/statics -> {sqladmin_static_dir}"
+        )
     else:
-        app_logger.warning(f"SQLAdmin static directory not found: {sqladmin_static_dir}")
-        
+        app_logger.warning(
+            f"SQLAdmin static directory not found: {sqladmin_static_dir}"
+        )
+
     # Also try to mount at /statics for compatibility
     if os.path.exists(sqladmin_static_dir):
-        app.mount("/statics", StaticFiles(directory=sqladmin_static_dir), name="admin_static_alt")
+        app.mount(
+            "/statics",
+            StaticFiles(directory=sqladmin_static_dir),
+            name="admin_static_alt",
+        )
         app_logger.info(f"SQLAdmin static files also mounted at /statics (alternative)")
-        
+
 except Exception as e:
     app_logger.error(f"Could not mount SQLAdmin static files: {e}")
     # Fallback: try to find sqladmin statics in common locations
     try:
         import sys
+
         for path in sys.path:
             potential_path = os.path.join(path, "sqladmin", "statics")
             if os.path.exists(potential_path):
-                app.mount("/admin/statics", StaticFiles(directory=potential_path), name="admin_static_fallback")
-                app_logger.info(f"SQLAdmin static files mounted (fallback): {potential_path}")
+                app.mount(
+                    "/admin/statics",
+                    StaticFiles(directory=potential_path),
+                    name="admin_static_fallback",
+                )
+                app_logger.info(
+                    f"SQLAdmin static files mounted (fallback): {potential_path}"
+                )
                 break
     except Exception as fallback_error:
         app_logger.error(f"Fallback static mounting also failed: {fallback_error}")
@@ -242,8 +262,9 @@ async def debug_cors(request: Request):
         "cors_config": {
             "raw_cors_origins": settings.cors_origins,
             "cors_allow_all_origins": settings.cors_allow_all_origins,
-        }
+        },
     }
+
 
 @app.get("/api/v1/health", include_in_schema=False)
 async def health_check():
@@ -251,5 +272,5 @@ async def health_check():
     return {
         "status": "healthy",
         "environment": settings.environment,
-        "timestamp": "2025-09-09T17:58:58.654793"
+        "timestamp": "2025-09-09T17:58:58.654793",
     }

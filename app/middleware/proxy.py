@@ -17,12 +17,12 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
         forwarded_proto = request.headers.get("x-forwarded-proto")
         forwarded_host = request.headers.get("x-forwarded-host")
         forwarded_port = request.headers.get("x-forwarded-port")
-        
+
         # Update request scope for SQLAdmin URL generation
         if forwarded_proto:
             # Force HTTPS scheme detection
             request.scope["scheme"] = forwarded_proto.lower()
-        
+
         if forwarded_host:
             # Update host information
             request.scope["server"] = (forwarded_host, int(forwarded_port or 443))
@@ -30,6 +30,6 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
             headers = dict(request.scope.get("headers", []))
             headers[b"host"] = forwarded_host.encode()
             request.scope["headers"] = list(headers.items())
-        
+
         response = await call_next(request)
         return response

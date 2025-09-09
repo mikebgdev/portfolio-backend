@@ -79,17 +79,21 @@ class Settings(BaseSettings):
             # In production, if no specific origins are set, be permissive but log warning
             if not self.cors_origins or len(self.cors_origins) == 0:
                 import logging
+
                 logger = logging.getLogger("portfolio.config")
-                logger.warning("No CORS origins configured for production, allowing all origins")
+                logger.warning(
+                    "No CORS origins configured for production, allowing all origins"
+                )
                 return ["*"]
-            
+
             # In production, allow wildcard if explicitly set
             if "*" in self.cors_origins or self.cors_allow_all_origins:
                 import logging
+
                 logger = logging.getLogger("portfolio.config")
                 logger.warning("Wildcard CORS origins allowed in production")
                 return ["*"]
-            
+
             return self.cors_origins
         else:
             # Check if wildcard is explicitly allowed

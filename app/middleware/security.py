@@ -81,8 +81,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             # Upgrade insecure requests for admin panel
             if path.startswith("/admin"):
                 response.headers["Content-Security-Policy"] = (
-                    response.headers.get("Content-Security-Policy", "") + 
-                    "; upgrade-insecure-requests"
+                    response.headers.get("Content-Security-Policy", "")
+                    + "; upgrade-insecure-requests"
                 )
 
         # Set CSP only if not already set above and csp_directives is defined
