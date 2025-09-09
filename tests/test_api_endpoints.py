@@ -121,6 +121,25 @@ class TestAPIEndpoints:
         """Test that non-existent endpoints return 404."""
         response = client.get("/api/v1/nonexistent/")
         assert response.status_code == 404
+    
+    def test_contact_message_endpoint(self, client: TestClient, test_data):
+        """Test the contact message send endpoint."""
+        message_data = {
+            "name": "Test User",
+            "email": "test@example.com",
+            "subject": "Test Subject",
+            "message": "This is a test message",
+            "phone": "+1234567890"
+        }
+        
+        response = client.post("/api/v1/contact/send/", json=message_data)
+        assert response.status_code == 201
+        
+        data = response.json()
+        assert data["success"] is True
+        assert data["message"] == "Mensaje enviado correctamente"
+        assert "id" in data
+        assert data["id"].startswith("msg-")
 
 
 class TestAPIErrorHandling:
@@ -140,6 +159,30 @@ class TestAPIErrorHandling:
         """Test site config endpoint when no data exists."""
         response = client.get("/api/v1/site-config/")
         assert response.status_code == 404
+    
+    def test_contact_message_validation_errors(self, client: TestClient, test_data):
+        """Test contact message endpoint validation errors."""
+        # Test missing required fields
+        response = client.post("/api/v1/contact/send/", json={})
+        assert response.status_code == 422
+        
+        # Test invalid email
+        message_data = {
+            "name": "Test User",
+            "email": "invalid-email",
+            "message": "Test message"
+        }
+        response = client.post("/api/v1/contact/send/", json=message_data)
+        assert response.status_code == 422
+        
+        # Test empty required fields
+        message_data = {
+            "name": "",
+            "email": "test@example.com",
+            "message": ""
+        }
+        response = client.post("/api/v1/contact/send/", json=message_data)
+        assert response.status_code == 422
 
 
 class TestAPIResponseFormat:

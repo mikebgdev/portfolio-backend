@@ -131,6 +131,18 @@ class Settings(BaseSettings):
     max_login_attempts: int = 5
     login_attempt_window_minutes: int = 15
 
+    # Gmail SMTP Configuration
+    smtp_server: str = Field(
+        default="smtp.gmail.com", description="SMTP server hostname"
+    )
+    smtp_port: int = Field(default=587, description="SMTP server port")
+    smtp_username: str = Field(default="", description="Gmail address")
+    smtp_password: str = Field(default="", description="Gmail App Password")
+    smtp_use_tls: bool = Field(default=True, description="Use TLS for SMTP connection")
+
+    # Email Settings
+    email_enabled: bool = Field(default=True, description="Enable email sending")
+
     @property
     def is_production(self) -> bool:
         """Check if running in production environment"""

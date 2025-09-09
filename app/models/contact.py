@@ -15,6 +15,7 @@ class Contact(Base):
 
     # Contact Methods
     email = Column(String(255), nullable=False)
+    sender_name = Column(String(255), nullable=True)  # Name for email signatures
 
     # Social Media Links
     linkedin_url = Column(String(500), nullable=True)

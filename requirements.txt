@@ -18,6 +18,9 @@ pydantic-settings==2.1.0
 # HTTP client
 httpx==0.25.2
 
+# Email support
+aiosmtplib==3.0.1
+
 # CORS support
 python-multipart==0.0.6
 
