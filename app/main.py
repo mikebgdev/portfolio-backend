@@ -41,7 +41,6 @@ from app.routers import (
     contact,
     education,
     experience,
-    iconify,
     projects,
     site_config,
     skills,
@@ -166,7 +165,6 @@ app.include_router(projects.router, prefix="/api/v1")
 app.include_router(experience.router, prefix="/api/v1")
 app.include_router(education.router, prefix="/api/v1")
 app.include_router(contact.router, prefix="/api/v1")
-app.include_router(iconify.router, prefix="/api/v1")
 
 # Mount static files for uploads
 uploads_dir = os.path.join(os.getcwd(), settings.uploads_path)

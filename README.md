@@ -13,7 +13,8 @@ A robust, production-ready FastAPI backend for personal portfolio websites with 
 
 ### Core Features
 - **🌍 Multilingual Support**: Complete English and Spanish content management
-- **🎨 Iconify Integration**: Comprehensive icon and color management system with 100+ technology presets
+- **📧 Email System**: Multilingual contact forms with Gmail SMTP integration
+- **🎨 Smart Admin Tooltips**: Intelligent icon and color suggestions for admin panel
 - **📁 File Management**: Base64-encoded file serving with admin upload capabilities
 - **🏗️ Clean Architecture**: Service layer pattern with dependency injection
 - **📚 Auto Documentation**: Interactive Swagger UI and ReDoc interfaces
@@ -25,9 +26,8 @@ A robust, production-ready FastAPI backend for personal portfolio websites with 
 - **🔍 Request Monitoring**: Performance tracking and structured logging
 
 ### Administration & Deployment
-- **👨‍💼 Enhanced Admin Panel**: SQLAdmin with smart tooltips, icon previews, and real-time validation
-- **🎯 Smart Form Fields**: Automatic color suggestions for popular technologies
-- **📧 Email System**: Multilingual contact forms with Gmail SMTP integration
+- **👨‍💼 Enhanced Admin Panel**: SQLAdmin with smart tooltips and form validation
+- **🎯 Smart Form Fields**: Icon and color suggestions for admin forms
 - **🐳 Docker Ready**: Multi-stage Dockerfile optimized for production
 - **🚀 CI/CD Pipeline**: Automated testing, security scanning, and deployment
 - **📊 Health Monitoring**: Built-in health checks and metrics collection
@@ -74,21 +74,9 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-### Option 3: Coolify Deployment
+### Option 3: Cloud Deployment
 
-```bash
-# Repository: https://github.com/yourusername/portfolio-backend
-# Branch: main
-
-# Required Environment Variables:
-ENVIRONMENT=production
-SECRET_KEY=your-32-char-secure-key
-POSTGRES_HOST=your-postgres-service
-POSTGRES_PASSWORD=secure-password
-CORS_ORIGINS=["https://yourdomain.com"]
-
-# See coolify-deploy.md for complete guide
-```
+Ready for deployment on any cloud platform (Docker Compose, Kubernetes, Coolify, etc.).
 
 ### 🎯 Access Points
 
@@ -108,20 +96,13 @@ All endpoints support `?lang=en|es` for multilingual content and return Base64-e
 | `/api/v1/site-config/` | GET | Site metadata & social sharing | SEO optimization |
 | `/api/v1/about/` | GET | Personal bio & information | Photo uploads |
 | `/api/v1/contact/` | GET | Contact details & CV | File downloads |
-| `/api/v1/skills/` | GET | Skills grouped by categories | Iconify integration |
+| `/api/v1/contact/send/` | POST | Send contact messages | Email notifications |
+| `/api/v1/skills/` | GET | Skills grouped by categories | Icon support |
 | `/api/v1/projects/` | GET | Portfolio projects | Image galleries |
 | `/api/v1/experience/` | GET | Work experience timeline | Date sorting |
 | `/api/v1/education/` | GET | Education records | Ongoing support |
 
-### Iconify Features
-| Endpoint | Description | Purpose |
-|----------|-------------|---------|
-| `/api/v1/iconify/tooltip` | Icon validation & suggestions | Smart admin tooltips |
-| `/api/v1/iconify/search` | Search technology icons | Find appropriate icons |
-| `/api/v1/iconify/categories` | Popular icon categories | Browse icon collections |
-| `/api/v1/iconify/validate-color` | Color format validation | Ensure valid colors |
-
-**📖 Complete Documentation**: [docs/api/API_DOCUMENTATION.md](./docs/api/API_DOCUMENTATION.md) | **🎨 Iconify Guide**: [docs/iconify/README.md](./docs/iconify/README.md)
+**📖 Complete Documentation**: [docs/api/API_DOCUMENTATION.md](./docs/api/API_DOCUMENTATION.md)
 
 ## ⚙️ Configuration
 
@@ -264,22 +245,9 @@ docker run -d \
   portfolio-backend:prod
 ```
 
-### Coolify Deployment
+### Cloud Platform Deployment
 
-1. **Create new project** in Coolify
-2. **Set repository**: `https://github.com/mikebgdev/portfolio-backend`
-3. **Configure environment** (see `.env.coolify.example`):
-   ```env
-   ENVIRONMENT=production
-   SECRET_KEY=your-32-char-secret
-   POSTGRES_HOST=your-postgres-host
-   POSTGRES_PASSWORD=secure-password
-   CORS_ORIGINS=["https://yourdomain.com"]
-   ```
-4. **Deploy**: Coolify auto-builds and deploys
-5. **Run migrations**: `alembic upgrade head`
-
-**📚 Complete Guide**: [coolify-deploy.md](./coolify-deploy.md)
+Compatible with major cloud platforms. Configure environment variables and run migrations after deployment.
 
 ### Manual Production Setup  
 
@@ -299,8 +267,6 @@ gunicorn app.main:app \
 ## 📚 Documentation
 
 - **📖 API Documentation**: [docs/api/API_DOCUMENTATION.md](./docs/api/API_DOCUMENTATION.md)
-- **🎨 Iconify System**: [docs/iconify/README.md](./docs/iconify/README.md)
-- **🛠️ Admin Guide**: [docs/iconify/admin-guide.md](./docs/iconify/admin-guide.md)
 - **📚 Interactive API Docs**: `/docs` (Swagger UI)  
 - **📚 Alternative API Docs**: `/redoc` (ReDoc)
 - **🎯 Admin Help**: Built-in tooltips and smart validation
