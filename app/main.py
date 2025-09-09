@@ -5,9 +5,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
@@ -30,6 +32,7 @@ from app.middleware.performance import (
     CompressionMiddleware,
     PerformanceMonitoringMiddleware,
 )
+from app.middleware.proxy import ProxyHeadersMiddleware
 from app.middleware.security import (
     InputSanitizationMiddleware,
     RateLimitingMiddleware,
@@ -101,6 +104,13 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan,
 )
+
+# Add proxy middleware for HTTPS handling (must be first)
+if settings.is_production:
+    # Handle proxy headers for correct HTTPS detection
+    app.add_middleware(ProxyHeadersMiddleware)
+    # Trust proxy headers
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # Add session middleware for admin authentication (before CORS)
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)

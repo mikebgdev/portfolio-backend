@@ -73,11 +73,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "frame-ancestors 'none'",
             ]
 
-        # Add HSTS header in production
-        if not settings.debug:
+        # Add HSTS header in production to force HTTPS
+        if settings.is_production:
             response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains"
+                "max-age=31536000; includeSubDomains; preload"
             )
+            # Upgrade insecure requests for admin panel
+            if path.startswith("/admin"):
+                response.headers["Content-Security-Policy"] = (
+                    response.headers.get("Content-Security-Policy", "") + 
+                    "; upgrade-insecure-requests"
+                )
 
         # Set CSP only if not already set above and csp_directives is defined
         if (
