@@ -66,6 +66,11 @@ class Skill(Base):
     display_order = Column(Integer, default=0)
     active = Column(Boolean, default=True)
 
+    # Relationships - importing here to avoid circular imports
+    projects = relationship(
+        "Project", secondary="project_skills", back_populates="skills"
+    )
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
