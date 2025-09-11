@@ -37,7 +37,6 @@ class ExperienceResponse(ExperienceBase):
     id: int
     created_at: datetime
     language: Optional[str] = "en"
-    available_languages: List[str] = ["en", "es"]
 
     class Config:
         from_attributes = True
