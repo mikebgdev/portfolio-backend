@@ -327,7 +327,7 @@ class ProjectAdmin(ModelView, model=Project):
     name_plural = "Proyectos"
     icon = "fa-solid fa-folder-open"
 
-    form_excluded_columns = [Project.id, Project.created_at, Project.technologies]
+    form_excluded_columns = [Project.id, Project.created_at]
     column_list = [
         Project.id,
         Project.title_en,

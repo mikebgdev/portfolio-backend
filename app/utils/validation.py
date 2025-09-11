@@ -62,21 +62,7 @@ def build_response_with_language(
             item_dict = {}
             for key, value in item.__dict__.items():
                 if not key.startswith("_"):
-                    # Handle technologies field - convert JSON string to list
-                    if key == "technologies" and isinstance(value, str):
-                        try:
-                            import json
-
-                            item_dict[key] = json.loads(value)
-                        except (json.JSONDecodeError, TypeError):
-                            # Fallback to comma-separated parsing
-                            item_dict[key] = [
-                                tech.strip()
-                                for tech in value.split(",")
-                                if tech.strip()
-                            ]
-                    else:
-                        item_dict[key] = value
+                    item_dict[key] = value
             return item_dict
         return item
 

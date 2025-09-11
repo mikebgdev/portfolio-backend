@@ -24,7 +24,7 @@ class ProjectService:
             .all()
         )
 
-        # Add image data and process technologies for each project
+        # Add image data for each project
         for project in projects:
             self._process_project_data(project)
 
