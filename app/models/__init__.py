@@ -6,7 +6,7 @@ from .contact import Contact
 from .contact_message import ContactMessage
 from .education import Education
 from .experience import Experience
-from .projects import Project
+from .projects import Project, project_skills
 from .site_config import SiteConfig
 from .skills import Skill, SkillCategory
 from .user import User
@@ -18,6 +18,7 @@ __all__ = [
     "Education",
     "Experience",
     "Project",
+    "project_skills",
     "Skill",
     "SkillCategory",
     "SiteConfig",

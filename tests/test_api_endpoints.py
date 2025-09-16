@@ -16,7 +16,7 @@ class TestAPIEndpoints:
         assert data["last_name"] == "User"
         assert data["email"] == "test@example.com"
         assert data["language"] == "en"
-        assert "available_languages" in data
+        # available_languages field was removed as part of schema cleanup
     
     def test_about_endpoint_spanish(self, client: TestClient, test_data):
         """Test the about endpoint with Spanish language."""
@@ -74,7 +74,11 @@ class TestAPIEndpoints:
         project = data[0]
         assert project["title_en"] == "Test Project"
         assert project["title_es"] == "Proyecto de Prueba"
-        assert project["technologies"] == ["Python", "FastAPI"]
+        # Verify skills instead of deprecated technologies field
+        assert "skills" in project
+        assert len(project["skills"]) > 0
+        skill = project["skills"][0]
+        assert skill["name_en"] == "Test Skill"
         assert project["language"] == "en"
     
     def test_experience_endpoint(self, client: TestClient, test_data):

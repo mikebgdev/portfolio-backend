@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.exceptions import ContentNotFoundError
 from app.models.projects import Project
@@ -19,32 +19,38 @@ class ProjectService:
         """Get all projects ordered by display order and creation date."""
         projects = (
             db.query(Project)
+            .options(joinedload(Project.skills))  # Eager load skills
             .order_by(Project.display_order, Project.created_at.desc())
             .all()
         )
 
         # Add image data for each project
         for project in projects:
-            if hasattr(project, "image_file") and project.image_file:
-                project.image_data = encode_file_to_base64(str(project.image_file))
-            else:
-                project.image_data = None
+            self._process_project_data(project)
 
         return projects
 
     def get_project_by_id(self, db: Session, project_id: int) -> Project:
         """Get project by ID."""
-        project = db.query(Project).filter(Project.id == project_id).first()
+        project = (
+            db.query(Project)
+            .options(joinedload(Project.skills))  # Eager load skills
+            .filter(Project.id == project_id)
+            .first()
+        )
         if not project:
             raise ContentNotFoundError("project", project_id)
 
+        self._process_project_data(project)
+        return project
+
+    def _process_project_data(self, project: Project) -> None:
+        """Process project data - add image data."""
         # Add image data if image_file exists
         if hasattr(project, "image_file") and project.image_file:
             project.image_data = encode_file_to_base64(str(project.image_file))
         else:
             project.image_data = None
-
-        return project
 
 
 # Global service instance

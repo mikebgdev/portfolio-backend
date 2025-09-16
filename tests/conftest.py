@@ -1,5 +1,4 @@
 """Test configuration and fixtures."""
-import json
 import pytest
 from datetime import date
 from fastapi.testclient import TestClient
@@ -141,13 +140,16 @@ def test_data(db_session):
         title_es="Proyecto de Prueba",
         description_en="Test project description",
         description_es="Descripción del proyecto de prueba",
-        technologies=json.dumps(["Python", "FastAPI"]),
         source_url="https://github.com/test/project",
         demo_url="https://test-project.com",
         display_order=1,
         activa=True
     )
     db_session.add(project)
+    db_session.flush()  # Flush to get the project ID
+    
+    # Associate the project with the skill
+    project.skills.append(skill)
     
     # Create test experience
     experience = Experience(

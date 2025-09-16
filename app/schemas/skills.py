@@ -52,7 +52,6 @@ class SkillCategoryResponse(SkillCategoryBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     language: Optional[str] = "en"
-    available_languages: List[str] = ["en", "es"]
 
     class Config:
         from_attributes = True
@@ -117,7 +116,6 @@ class SkillResponse(SkillBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     language: Optional[str] = "en"
-    available_languages: List[str] = ["en", "es"]
 
     class Config:
         from_attributes = True

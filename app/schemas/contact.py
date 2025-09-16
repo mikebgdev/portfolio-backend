@@ -2,7 +2,7 @@
 
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -36,7 +36,6 @@ class ContactResponse(ContactBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     language: Optional[str] = "en"
-    available_languages: List[str] = ["en", "es"]
 
     # File data (populated by service layer)
     cv_data: Optional[Dict[str, Any]] = Field(

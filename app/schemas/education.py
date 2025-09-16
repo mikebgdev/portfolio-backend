@@ -1,7 +1,7 @@
 """Education schemas for API requests and responses."""
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -33,7 +33,6 @@ class EducationResponse(EducationBase):
     id: int
     created_at: datetime
     language: Optional[str] = "en"
-    available_languages: List[str] = ["en", "es"]
 
     class Config:
         from_attributes = True

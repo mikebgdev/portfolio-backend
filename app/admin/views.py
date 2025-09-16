@@ -321,7 +321,7 @@ UI: <code>code</code>, <code>database</code>, <code>server</code>, <code>setting
 
 # ==================== PROJECTS ADMIN ====================
 class ProjectAdmin(ModelView, model=Project):
-    """Admin view for Projects."""
+    """Admin view for Projects with Skills integration."""
 
     name = "Proyecto"
     name_plural = "Proyectos"
@@ -331,12 +331,12 @@ class ProjectAdmin(ModelView, model=Project):
     column_list = [
         Project.id,
         Project.title_en,
-        Project.technologies,
+        "skills",  # Show related skills
         Project.activa,
         Project.display_order,
         Project.image_file,
     ]
-    column_searchable_list = [Project.title_en, Project.title_es, Project.technologies]
+    column_searchable_list = [Project.title_en, Project.title_es]
     column_sortable_list = [
         Project.id,
         Project.title_en,
@@ -345,7 +345,12 @@ class ProjectAdmin(ModelView, model=Project):
     ]
 
     # Custom form fields
-    form_overrides = {"image_file": ImageUploadField}
+    form_overrides = {
+        "image_file": ImageUploadField,
+    }
+
+    # Configure the many-to-many relationship
+    form_include_pk = True
 
     column_labels = {
         "id": "ID",
@@ -354,12 +359,26 @@ class ProjectAdmin(ModelView, model=Project):
         "description_en": "Descripción (Inglés)",
         "description_es": "Descripción (Español)",
         "image_file": "Archivo de imagen",
-        "technologies": "Tecnologías utilizadas",
+        "skills": "Habilidades/Tecnologías utilizadas",
         "source_url": "URL código fuente",
         "demo_url": "URL demo en vivo",
         "display_order": "Orden de visualización",
         "activa": "¿Activo?",
         "created_at": "Fecha de creación",
+    }
+
+    # Help text for skills selection
+    form_args = {
+        "skills": {
+            "description": """
+💡 <strong>Selecciona las habilidades/tecnologías usadas en este proyecto.</strong><br>
+• Mantén Ctrl/Cmd presionado para seleccionar múltiples skills<br>
+• Los skills seleccionados aparecerán en el frontend del proyecto<br>
+• Si no encuentras una tecnología, créala primero en la sección de Habilidades<br>
+<br>
+📝 Tip: Usa skills específicos para mejor organización (ej: React, Node.js, PostgreSQL)
+            """
+        }
     }
 
     def is_accessible(self, request: Request) -> bool:
