@@ -1,13 +1,11 @@
 """Projects schemas for API requests and responses."""
 
-import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 from .skills import SkillResponse
-
 
 # Removed ProjectBase, ProjectCreate, and ProjectUpdate schemas as they are no longer needed
 
